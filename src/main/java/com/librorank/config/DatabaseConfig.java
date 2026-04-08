@@ -31,18 +31,22 @@ public class DatabaseConfig {
             }
             props.load(is);
 
-            String driver = props.getProperty("db.driver");
+            String driver = System.getenv("DB_DRIVER") != null ? System.getenv("DB_DRIVER") : props.getProperty("db.driver");
+            String url = System.getenv("DB_URL") != null ? System.getenv("DB_URL") : props.getProperty("db.url");
+            String user = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : props.getProperty("db.user");
+            String password = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : props.getProperty("db.password");
+
             Class.forName(driver);
 
             HikariConfig config = new HikariConfig();
             config.setDriverClassName(driver);
-            config.setJdbcUrl(props.getProperty("db.url"));
-            config.setUsername(props.getProperty("db.user"));
-            config.setPassword(props.getProperty("db.password"));
+            config.setJdbcUrl(url);
+            config.setUsername(user);
+            config.setPassword(password);
 
             // Ajustes del pool desde properties o valores por defecto
-            config.setMaximumPoolSize(Integer.parseInt(props.getProperty("db.pool.maxSize", "10")));
-            config.setMinimumIdle(Integer.parseInt(props.getProperty("db.pool.minIdle", "2")));
+            config.setMaximumPoolSize(Integer.parseInt(System.getenv("DB_POOL_MAX") != null ? System.getenv("DB_POOL_MAX") : props.getProperty("db.pool.maxSize", "10")));
+            config.setMinimumIdle(Integer.parseInt(System.getenv("DB_POOL_MIN") != null ? System.getenv("DB_POOL_MIN") : props.getProperty("db.pool.minIdle", "2")));
             config.setIdleTimeout(300000);
             config.setConnectionTimeout(30000);
 
