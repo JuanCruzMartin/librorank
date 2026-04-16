@@ -10,7 +10,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Mi perfil — LibroRank</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <link rel="stylesheet" href="Css/styles.css">
+    <style>
+        .cropper-view-box, .cropper-face { border-radius: 50%; }
+        .modal-cropper-content { background: #1a1a1a; border: 1px solid var(--accent-gold); color: white; }
+    </style>
 </head>
 <body>
 
@@ -34,20 +40,16 @@
                 <c:remove var="mensajeOk" scope="session"/>
             </c:if>
 
-            <c:if test="${not empty sessionScope.mensajeError}">
-                <div class="alert alert--error">
-                    ${sessionScope.mensajeError}
-                </div>
-                <c:remove var="mensajeError" scope="session"/>
-            </c:if>
-
             <div class="perfil-layout">
 
                 <aside class="perfil-side">
                     <div class="card perfil-user-card">
-                        <div class="user-avatar">
+                        <div class="user-avatar" style="position: relative; overflow: visible;">
                             <c:set var="avatar" value="${not empty usuarioMostrado.avatarUrl ? usuarioMostrado.avatarUrl : 'personaje_1'}" />
                             <c:choose>
+                                <c:when test="${fn:contains(avatar, '/')}">
+                                    <img src="${avatar}" alt="Foto de Perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                </c:when>
                                 <c:when test="${fn:startsWith(avatar, 'personaje_')}">
                                     <img src="assets/personajes/${avatar}.png" alt="Avatar" style="width: 80%; height: 80%; object-fit: contain;">
                                 </c:when>
@@ -55,15 +57,31 @@
                                     <img src="img/${avatar}/${avatar}_0.png" alt="Avatar" style="width: 80%; height: 80%; object-fit: contain;">
                                 </c:otherwise>
                             </c:choose>
+                            
+                            <c:if test="${usuarioLogueado.id == usuarioMostrado.id}">
+                                <div id="loadingFoto" style="display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.6); border-radius: 50%; z-index: 20; align-items: center; justify-content: center;">
+                                    <div class="spinner-border text-gold" role="status" style="width: 2rem; height: 2rem;"></div>
+                                </div>
+                                <form action="subirFoto" method="post" enctype="multipart/form-data" id="formFoto" style="position: absolute; bottom: 5px; right: 5px; z-index: 21;">
+                                    <label for="inputFoto" class="btn-gold" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.6); background: #1a1a1a; border: 2px solid var(--accent-gold); color: var(--accent-gold); transition: all 0.3s ease;">
+                                        <i class="bi bi-camera-fill" style="font-size: 1.2rem;"></i>
+                                    </label>
+                                    <input type="file" name="fotoPerfil" id="inputFoto" accept="image/*" style="display: none;" onchange="enviarFormularioFoto()">
+                                </form>
+                                <style>
+                                    label[for="inputFoto"]:hover {
+                                        background: var(--accent-gold) !important;
+                                        color: #000 !important;
+                                        transform: scale(1.1);
+                                    }
+                                </style>
+                            </c:if>
                         </div>
                         <div class="user-meta">
                             <h1 class="user-name"><c:out value="${usuarioMostrado.nombre}"/></h1>
                             <p class="muted user-handle">@<c:out value="${usuarioMostrado.username}"/></p>
                             <span class="badge badge--level">${tituloNivel}</span>
 
-                            <p class="coins-line" style="color: #ffd700; font-weight: bold; margin-top: 10px;">
-                                🪙 <span>${usuarioMostrado.monedas}</span> monedas
-                            </p>
                             <p style="color: #fff; margin-bottom: 5px;">
                                 Nivel <strong>${nivel}</strong> · Total leídos:
                                 <strong>${leidosTotal}</strong>
@@ -84,17 +102,10 @@
                             <div class="progress-bar" style="width: ${porcentaje}%; background: var(--accent-gold); box-shadow: 0 0 15px var(--accent-gold-glow); border-radius: 50px;"></div>
                         </div>
 
-                        <c:choose>
-                            <c:when test="${leidosEsteAnio == 0}">
-                                <p class="text-muted small">¡Aún no ha empezado su lectura este año! 📚</p>
-                            </c:when>
-                            <c:otherwise>
-                                <p class="small" style="color: #fff;">
-                                    Lleva <strong>${leidosEsteAnio}</strong> libros este año · 
-                                    <span class="text-muted">Faltan ${restantesObjetivo}</span>
-                                </p>
-                            </c:otherwise>
-                        </c:choose>
+                        <p class="small" style="color: #fff;">
+                            Lleva <strong>${leidosEsteAnio}</strong> libros este año · 
+                            <span class="text-muted">Faltan ${restantesObjetivo}</span>
+                        </p>
                     </div>
 
                     <div class="card perfil-level-card">
@@ -111,14 +122,12 @@
                 </aside>
 
                 <section class="perfil-main">
-                    <%-- NAVEGACIÓN DE PESTAÑAS --%>
                     <div class="inventory-tabs" style="margin-bottom: 2rem;">
                         <button class="tab-btn active" id="btn-resumen" onclick="switchProfileTab('resumen', this)">✨ Mi Resumen</button>
                         <button class="tab-btn" id="btn-amigos" onclick="switchProfileTab('amigos', this)">👥 Amigos</button>
                         <button class="tab-btn" id="btn-config" onclick="switchProfileTab('config', this)">⚙️ Editar Cuenta</button>
                     </div>
 
-                    <%-- CONTENIDO: AMIGOS --%>
                     <div id="tab-amigos" class="profile-tab-content" style="display: none;">
                         <article class="card perfil-section">
                             <h2>Buscar nuevos amigos</h2>
@@ -126,89 +135,51 @@
                                 <input type="text" name="q" placeholder="Buscar por usuario o email..." style="flex-grow: 1;" required>
                                 <button type="submit" class="btn btn--brand">Buscar</button>
                             </form>
-
                             <c:if test="${not empty resultadosBusqueda}">
-                                <h3>Resultados de búsqueda</h3>
                                 <div class="grid-lecturas">
                                     <c:forEach var="u" items="${resultadosBusqueda}">
                                         <c:set var="user" value="${u}" scope="request" />
-                                        <c:set var="context" value="search" scope="request" />
                                         <jsp:include page="/includes/userCard.jsp" />
                                     </c:forEach>
                                 </div>
                             </c:if>
                         </article>
 
-                        <c:if test="${not empty sugerencias}">
-                            <article class="card perfil-section" style="border: 1px solid #4cd13733; background: linear-gradient(180deg, #4cd13705, transparent);">
-                                <h2>Personas que leen como vos</h2>
-                                <p class="muted small" style="margin-bottom: 1rem;">Basado en tus lecturas recientes</p>
-                                <div class="grid-lecturas">
-                                    <c:forEach var="s" items="${sugerencias}">
-                                        <c:set var="user" value="${s}" scope="request" />
-                                        <c:set var="context" value="sugerencia" scope="request" />
-                                        <jsp:include page="/includes/userCard.jsp" />
-                                    </c:forEach>
-                                </div>
-                            </article>
-                        </c:if>
-
                         <article class="card perfil-section">
                             <h2>Mis amigos</h2>
-                            <c:choose>
-                                <c:when test="${empty amigos}">
-                                    <p class="muted text-center">Aún no tienes amigos agregados.</p>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="grid-lecturas">
-                                        <c:forEach var="a" items="${amigos}">
-                                            <c:set var="user" value="${a}" scope="request" />
-                                            <c:set var="context" value="friends" scope="request" />
-                                            <jsp:include page="/includes/userCard.jsp" />
-                                        </c:forEach>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
+                            <div class="grid-lecturas">
+                                <c:forEach var="a" items="${amigos}">
+                                    <c:set var="user" value="${a}" scope="request" />
+                                    <jsp:include page="/includes/userCard.jsp" />
+                                </c:forEach>
+                            </div>
                         </article>
                     </div>
 
-                    <%-- CONTENIDO: RESUMEN (Visible por defecto) --%>
                     <div id="tab-resumen" class="profile-tab-content active">
                         <article class="card perfil-section">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                                 <h2 style="margin:0; border:none; padding:0;">Últimas conquistas</h2>
                                 <a href="biblioteca" class="text-gold fw-bold text-decoration-none small">Ver biblioteca completa →</a>
                             </div>
-
-                            <c:choose>
-                                <c:when test="${empty ultimasLecturas}">
-                                    <div class="text-center py-5" style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
-                                        <p class="text-muted m-0">Aún no has terminado ningún libro.</p>
-                                        <p class="small text-muted">¡Marcá uno como LEÍDO para verlo acá!</p>
+                            <div class="grid-lecturas">
+                                <c:forEach var="l" items="${ultimasLecturas}">
+                                    <div class="card-lectura-mini">
+                                        <div style="width: 45px; height: 65px; background: #222; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(212, 175, 55, 0.2);">
+                                            <span>📕</span>
+                                        </div>
+                                        <div style="flex-grow: 1; min-width: 0;">
+                                            <h4 class="text-truncate">${l.titulo}</h4>
+                                            <p class="text-muted small text-truncate">${l.autor}</p>
+                                        </div>
+                                        <span class="badge-cozy badge--leido">✓ Leído</span>
                                     </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="grid-lecturas">
-                                        <c:forEach var="l" items="${ultimasLecturas}">
-                                            <div class="card-lectura-mini">
-                                                <div style="width: 45px; height: 65px; background: linear-gradient(135deg, var(--bg-input-focus), #111); border-radius: 6px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(212, 175, 55, 0.2); flex-shrink: 0;">
-                                                    <span style="font-size: 1.4rem;">📕</span>
-                                                </div>
-                                                <div style="flex-grow: 1; min-width: 0;">
-                                                    <h4 class="text-truncate">${l.titulo}</h4>
-                                                    <p class="text-muted small text-truncate">${l.autor}</p>
-                                                </div>
-                                                <span class="badge-cozy badge--leido" style="white-space: nowrap;">✓ Leído</span>
-                                            </div>
-                                        </c:forEach>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
+                                </c:forEach>
+                            </div>
                         </article>
 
                         <article class="card perfil-section">
-                            <h2 style="margin-bottom: 0.5rem; border:none; padding:0;">Muro de Trofeos</h2>
-                            <p class="text-muted small mb-4">Tu progreso legendario en LibroRank.</p>
+                            <h2>Muro de Trofeos</h2>
                             <div class="trophies-grid">
                                 <c:forEach var="logro" items="${listaLogros}">
                                     <div class="trophy-item ${logro.desbloqueado ? 'desbloqueado' : ''}" title="${logro.descripcion}">
@@ -220,157 +191,111 @@
                         </article>
                     </div>
 
-                    <%-- CONTENIDO: CONFIGURACIÓN (Oculto por defecto) --%>
                     <div id="tab-config" class="profile-tab-content" style="display: none;">
                         <form class="perfil-form" action="perfil" method="post">
                             <article class="card perfil-section">
-                                <h2 style="border:none; padding:0; margin-bottom: 1.5rem;">Datos de la cuenta</h2>
+                                <h2>Datos de la cuenta</h2>
                                 <div class="form-grid">
                                     <div class="field">
                                         <label for="nombre">Nombre completo</label>
-                                        <input type="text" id="nombre" name="nombre" value="${usuarioLogueado.nombre}" placeholder="Tu nombre...">
+                                        <input type="text" id="nombre" name="nombre" value="${usuarioLogueado.nombre}">
                                     </div>
                                     <div class="field">
                                         <label for="usuario">Nombre de usuario</label>
-                                        <input type="text" id="usuario" name="usuario" value="${usuarioLogueado.username}" placeholder="usuario123">
+                                        <input type="text" id="usuario" name="usuario" value="${usuarioLogueado.username}">
                                     </div>
                                     <div class="field field--full">
-                                        <label for="email">Dirección de email</label>
-                                        <input type="email" id="email" name="email" value="${usuarioLogueado.email}" placeholder="correo@ejemplo.com">
+                                        <label for="email">Email</label>
+                                        <input type="email" id="email" name="email" value="${usuarioLogueado.email}">
                                     </div>
                                     <div class="field field--full">
-                                        <label for="bio">Biografía / Frase favorita</label>
-                                        <textarea id="bio" name="bio" rows="3" placeholder="Escribe algo sobre vos...">${usuarioLogueado.bio}</textarea>
-                                        <p class="text-muted" style="font-size: 0.7rem; margin-top: 4px;">Este texto aparecerá en tu perfil público.</p>
+                                        <label for="bio">Biografía</label>
+                                        <textarea id="bio" name="bio" rows="3">${usuarioLogueado.bio}</textarea>
                                     </div>
                                 </div>
-                            </article>
-
-                            <article class="card perfil-section">
-                                <h2 style="border:none; padding:0; margin-bottom: 1.5rem;">Metas Literarias</h2>
-                                <div class="form-grid">
-                                    <div class="field field--full">
-                                        <label>Tus géneros preferidos</label>
-                                        <p class="text-muted small mb-2">Seleccioná los temas que más te apasionan:</p>
-                                        <input type="hidden" id="generosInput" name="generos" value="${usuarioLogueado.generosFavoritos}">
-                                        <div class="chips prefs-chips" id="chipsGeneros">
-                                            <button class="chip" type="button" data-genre="Filosofía">Filosofía</button>
-                                            <button class="chip" type="button" data-genre="Ficción">Ficción</button>
-                                            <button class="chip" type="button" data-genre="Tecnología">Tecnología</button>
-                                            <button class="chip" type="button" data-genre="Negocios">Negocios</button>
-                                            <button class="chip" type="button" data-genre="Ciencia">Ciencia</button>
-                                            <button class="chip" type="button" data-genre="Historia">Historia</button>
-                                            <button class="chip" type="button" data-genre="Arte">Arte</button>
-                                        </div>
-                                    </div>
-                                    <div class="field field--full">
-                                        <label for="objetivo">Objetivo de lectura anual</label>
-                                        <select id="objetivo" name="objetivo" style="width: 100%; cursor: pointer;">
-                                            <c:forEach var="obj" items="10,20,30,40,50,100">
-                                                <option value="${obj}" ${objetivoAnual == obj ? 'selected' : ''}>${obj} libros al año</option>
-                                            </c:forEach>
-                                        </select>
-                                    </div>
+                                <div class="mt-3">
+                                    <button class="btn--brand px-5 py-3" type="submit">Guardar cambios</button>
                                 </div>
                             </article>
-                            
-                            <div class="d-flex justify-content-end mt-3">
-                                <button class="btn--brand px-5 py-3" type="submit">
-                                    💾 Guardar todos los cambios
-                                </button>
-                            </div>
                         </form>
                     </div>
                 </section>
-
-            </div> </div> </section>
+            </div>
+        </div>
+    </section>
 </main>
 
+<!-- Modal de Recorte -->
+<div class="modal fade" id="modalCropper" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modal-cropper-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title font-title text-gold">Ajustar Foto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="cancelarRecorte()"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #000; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+                <img id="imageToCrop" src="" style="max-width: 100%; display: block;">
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" onclick="cancelarRecorte()">Cancelar</button>
+                <button type="button" class="btn btn-gold" onclick="guardarRecorte()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const chips = document.querySelectorAll('.chip');
-        const inputHidden = document.getElementById('generosInput');
-        let seleccionados = inputHidden.value ? inputHidden.value.split(',') : [];
+    let cropper;
+    let bSModalCropper;
 
-        function actualizarVisuales() {
-            chips.forEach(chip => {
-                if (seleccionados.includes(chip.dataset.genre)) {
-                    chip.classList.add('active');
-                    chip.style.backgroundColor = "#4cd137";
-                    chip.style.color = "#000";
-                    chip.style.fontWeight = "bold";
-                } else {
-                    chip.classList.remove('active');
-                    chip.style.backgroundColor = "";
-                    chip.style.color = "";
-                    chip.style.fontWeight = "normal";
-                }
-            });
+    function enviarFormularioFoto() {
+        const input = document.getElementById('inputFoto');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const image = document.getElementById('imageToCrop');
+                image.src = e.target.result;
+                if (!bSModalCropper) bSModalCropper = new bootstrap.Modal(document.getElementById('modalCropper'));
+                bSModalCropper.show();
+                
+                document.getElementById('modalCropper').addEventListener('shown.bs.modal', function init() {
+                    if (cropper) cropper.destroy();
+                    cropper = new Cropper(image, { aspectRatio: 1, viewMode: 1, dragMode: 'move', autoCropArea: 1 });
+                    document.getElementById('modalCropper').removeEventListener('shown.bs.modal', init);
+                });
+            };
+            reader.readAsDataURL(input.files[0]);
         }
+    }
 
-        chips.forEach(chip => {
-            chip.addEventListener('click', function() {
-                const genero = this.dataset.genre;
-                if (seleccionados.includes(genero)) {
-                    seleccionados = seleccionados.filter(g => g !== genero);
-                } else {
-                    seleccionados.push(genero);
-                }
-                inputHidden.value = seleccionados.join(',');
-                actualizarVisuales();
-            });
-        });
-        actualizarVisuales();
+    function guardarRecorte() {
+        if (!cropper) return;
+        document.getElementById('loadingFoto').style.display = 'flex';
+        bSModalCropper.hide();
+        cropper.getCroppedCanvas({ width: 400, height: 400 }).toBlob((blob) => {
+            const formData = new FormData();
+            formData.append('fotoPerfil', blob, 'perfil.jpg');
+            fetch('subirFoto', { method: 'POST', body: formData })
+            .then(r => r.redirected ? window.location.href = r.url : window.location.reload())
+            .catch(() => alert('Error al subir'));
+        }, 'image/jpeg');
+    }
 
-        // Manejar cambio de pestaña automático por URL o por parámetro de request (forward)
-        const urlParams = new URLSearchParams(window.location.search);
-        let tab = urlParams.get('tab');
-        
-        // Si no está en el query string de la URL (porque fue un forward), 
-        // revisamos si el servidor nos inyectó el parámetro en la página.
-        if (!tab) {
-            tab = "${param.tab}";
-        }
-
-        if (tab === 'amigos') {
-            switchProfileTab('amigos', document.getElementById('btn-amigos'));
-        } else if (tab === 'config') {
-            switchProfileTab('config', document.getElementById('btn-config'));
-        }
-    });
+    function cancelarRecorte() {
+        if (cropper) cropper.destroy();
+        document.getElementById('inputFoto').value = '';
+    }
 
     function switchProfileTab(tabId, btn) {
-        // Ocultar todos los contenidos de pestañas
-        document.querySelectorAll('.profile-tab-content').forEach(c => {
-            c.style.display = 'none';
-            c.classList.remove('active');
-        });
-        
-        // Quitar clase active de todos los botones
+        document.querySelectorAll('.profile-tab-content').forEach(c => c.style.display = 'none');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
-        // Mostrar el contenido seleccionado
-        const target = document.getElementById('tab-' + tabId);
-        if (target) {
-            target.style.display = 'block';
-            target.classList.add('active');
-        }
-        
-        // Activar el botón clicado
+        document.getElementById('tab-' + tabId).style.display = 'block';
         if (btn) btn.classList.add('active');
     }
-
-    function toggleAfinidad(id) {
-        const div = document.getElementById(id);
-        if (div) {
-            if (div.style.display === 'none') {
-                div.style.display = 'block';
-            } else {
-                div.style.display = 'none';
-            }
-        }
-    }
 </script>
+
 <jsp:include page="/includes/footer.jsp" />
 </body>
 </html>

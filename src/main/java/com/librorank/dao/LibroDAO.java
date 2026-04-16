@@ -266,14 +266,34 @@ public class LibroDAO {
         } catch (SQLException e) { return new PerfilStats(); }
     }
 
-    public boolean eliminar(int idLibro, int idUsuario){
-        String sql = "UPDATE libros_usuario SET estado = 'ARCHIVADO' WHERE id = ? AND usuario_id = ?";
-        try(Connection conn = DatabaseConfig.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)){
-            stmt.setInt(1, idLibro);
-            stmt.setInt(2, idUsuario);
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e){ return false; }
+    public boolean eliminar(int idLibro, int idUsuario) {
+        // Primero eliminamos dependencias (Diario de lectura) para evitar errores de FK
+        String sqlDiario = "DELETE FROM diario_lectura WHERE libro_id = ?";
+        String sqlLibro = "DELETE FROM libros_usuario WHERE id = ? AND usuario_id = ?";
+
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement stmtDiario = conn.prepareStatement(sqlDiario);
+                 PreparedStatement stmtLibro = conn.prepareStatement(sqlLibro)) {
+                
+                stmtDiario.setInt(1, idLibro);
+                stmtDiario.executeUpdate();
+
+                stmtLibro.setInt(1, idLibro);
+                stmtLibro.setInt(2, idUsuario);
+                int filas = stmtLibro.executeUpdate();
+                
+                conn.commit();
+                return filas > 0;
+            } catch (SQLException e) {
+                conn.rollback();
+                logger.error("Error al eliminar libro ID {} y su diario", idLibro, e);
+                return false;
+            }
+        } catch (SQLException e) {
+            logger.error("Error de conexión al eliminar libro", e);
+            return false;
+        }
     }
 
     public boolean existeRegistroPrevio(int usuarioId, String titulo, String autor) {

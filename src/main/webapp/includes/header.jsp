@@ -16,16 +16,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="tienda" class="${pageContext.request.requestURI.contains('tienda') ? 'text-white' : 'text-muted'} fw-500">
-                        🛒 Tienda
-                    </a>
-                </li>
-                <li>
-                    <a href="habitacion" class="${pageContext.request.requestURI.contains('habitacion') ? 'text-white' : 'text-muted'} fw-500">
-                        🏠 Mi Habitación
-                    </a>
-                </li>
-                <li>
                     <a href="bingo" class="${pageContext.request.requestURI.contains('bingo') ? 'text-white' : 'text-muted'} fw-500">
                         🎲 Bingo
                     </a>
@@ -54,12 +44,6 @@
                 <li class="ms-2">
                     <div class="badge-cozy" style="background: rgba(255, 69, 0, 0.1); color: #ff4500; border: 1px solid rgba(255, 69, 0, 0.3);">
                         🔥 ${usuarioLogueado.rachaActual}
-                    </div>
-                </li>
-
-                <li class="ms-2">
-                    <div class="badge-cozy" style="background: rgba(212, 175, 55, 0.1); color: var(--accent-gold); border: 1px solid rgba(212, 175, 55, 0.3);">
-                        🪙 ${usuarioLogueado.monedas}
                     </div>
                 </li>
 

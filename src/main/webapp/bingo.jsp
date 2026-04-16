@@ -72,7 +72,9 @@
         <div class="bingo-grid">
             <c:forEach var="c" items="${bingo}">
                 <div class="bingo-square ${c.completado ? 'completed' : ''}" 
-                     <c:if test="${!c.completado}">onclick="abrirModalBingo('${c.id}', '${c.tituloReto}')"</c:if>>
+                     data-id="${c.id}" 
+                     data-titulo="${c.tituloReto}"
+                     <c:if test="${!c.completado}">onclick="prepararModalBingo(this)"</c:if>>
                     <c:choose>
                         <c:when test="${c.completado}">
                             <i class="bi bi-check-circle-fill"></i>
@@ -121,9 +123,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function abrirModalBingo(id, titulo) {
+        function prepararModalBingo(elemento) {
+            const id = elemento.getAttribute('data-id');
+            const titulo = elemento.getAttribute('data-titulo');
+            
             document.getElementById('modalRetoId').value = id;
             document.getElementById('modalTituloReto').innerText = titulo;
+            
             new bootstrap.Modal(document.getElementById('modalBingo')).show();
         }
     </script>

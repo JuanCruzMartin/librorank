@@ -19,6 +19,24 @@
     </div>
 </div>
 
+<footer class="mt-5 py-4 border-top border-secondary" style="background: rgba(0,0,0,0.3);">
+    <div class="container text-center">
+        <p class="mb-0 small" style="color: var(--text-muted); letter-spacing: 1px; font-weight: 500;">
+            &copy; 2026 <span class="text-gold fw-bold">LibroRank</span>. Todos los derechos reservados.<br>
+            Desarrollado con ❤️ por <span class="text-white">Juan Cruz Martin, Argentina</span>
+        </p>
+        <div class="mt-2 d-flex justify-content-center gap-3">
+            <a href="#" class="text-muted text-decoration-none small hover-gold">Términos</a>
+            <a href="#" class="text-muted text-decoration-none small hover-gold">Privacidad</a>
+            <a href="#" class="text-muted text-decoration-none small hover-gold">Soporte</a>
+        </div>
+    </div>
+</footer>
+
+<style>
+    .hover-gold:hover { color: var(--accent-gold) !important; transition: 0.3s; }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     let confirmCallback = null;

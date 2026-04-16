@@ -66,6 +66,14 @@ header.site-header {
     -webkit-backdrop-filter: blur(15px);
 }
 
+.library-header {
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), transparent), 
+                rgba(212, 175, 55, 0.03);
+    padding: 60px 0;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    margin-bottom: 2rem;
+}
+
 .nav-link-custom {
     color: rgba(255, 255, 255, 0.8) !important;
     font-weight: 700;
@@ -855,7 +863,7 @@ header.site-header {
 .badge--leido { background: #2d4030; color: #a3cfbb; }
 
 /* =========================================
-   10. TIENDA (SHOP) - ESTILO JUEGO
+   10. SOCIAL FEED
    ========================================= */
 .shop-header {
     display: flex;
@@ -1261,3 +1269,46 @@ header.site-header {
 }
 
 
+/* =========================================
+   10. SOCIAL FEED
+   ========================================= */
+.feed-item {
+    border-left: 4px solid var(--accent-gold);
+    transition: var(--transition);
+}
+
+.feed-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.feed-user-img img {
+    border: 2px solid var(--accent-gold);
+    padding: 2px;
+}
+
+.feed-actions a {
+    transition: var(--transition);
+}
+
+.feed-actions a:hover {
+    color: var(--accent-gold) !important;
+    opacity: 1;
+}
+
+.feed-book-preview {
+    transition: var(--transition);
+}
+
+.feed-book-preview:hover {
+    background: rgba(212, 175, 55, 0.1) !important;
+}
+
+.badge-cozy {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--accent-gold);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}

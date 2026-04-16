@@ -37,6 +37,6 @@ public class SeleccionarAvatarServlet extends HttpServlet {
             }
         }
 
-        response.sendRedirect(request.getContextPath() + "/habitacion");
+        response.sendRedirect(request.getContextPath() + "/perfil");
     }
 }

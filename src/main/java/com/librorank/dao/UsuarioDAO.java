@@ -200,26 +200,6 @@ public class UsuarioDAO {
     }
 
     /**
-     * RESTAR MONEDAS CUANDO SE COMPRA ALGO
-     */
-    public boolean restarMonedas(int usuarioId, int costo) {
-        String sql = "UPDATE usuarios SET monedas = monedas - ? WHERE id  = ? AND monedas >= ?";
-
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, costo);
-            stmt.setInt(2, usuarioId);
-            stmt.setInt(3, costo);
-
-            int filasAfectadas = stmt.executeUpdate();
-            return filasAfectadas > 0;
-        } catch (SQLException e) {
-            logger.error("Error al restar monedas para usuarioId: {}", usuarioId, e);
-            return false;
-        }
-    }
-
-    /**
      * ACTUALIZAR AVATAR SELECCIONADO
      */
     public boolean actualizarAvatarActual(int usuarioId, String folderAvatar) {

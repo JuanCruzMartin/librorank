@@ -39,20 +39,51 @@ public class RetosServlet extends HttpServlet {
         Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
 
         String accion = request.getParameter("accion");
+        String mensaje = null;
+        String tipoMensaje = "success";
 
-        if ("crear".equals(accion)) {
-            String nombre = request.getParameter("nombre");
-            String fechaFin = request.getParameter("fechaFin");
-            String libroIdStr = request.getParameter("libroId");
-            Integer libroId = (libroIdStr != null && !libroIdStr.isEmpty()) ? Integer.parseInt(libroIdStr) : null;
-            retoDAO.crearReto(usuario.getId(), nombre, libroId, fechaFin);
-        } else if ("unirse".equals(accion)) {
-            int retoId = Integer.parseInt(request.getParameter("retoId"));
-            retoDAO.unirseAReto(retoId, usuario.getId());
-        } else if ("actualizar".equals(accion)) {
-            int retoId = Integer.parseInt(request.getParameter("retoId"));
-            int progreso = Integer.parseInt(request.getParameter("progreso"));
-            retoDAO.actualizarProgreso(retoId, usuario.getId(), progreso);
+        try {
+            if ("crear".equals(accion)) {
+                String nombre = request.getParameter("nombre");
+                String fechaFin = request.getParameter("fechaFin");
+                String libroIdStr = request.getParameter("libroId");
+                Integer libroId = (libroIdStr != null && !libroIdStr.isEmpty()) ? Integer.parseInt(libroIdStr) : null;
+                
+                boolean creado = retoDAO.crearReto(usuario.getId(), nombre, libroId, fechaFin);
+                if (creado) {
+                    mensaje = "¡Reto creado exitosamente!";
+                } else {
+                    mensaje = "No se pudo crear el reto. Por favor, verifica los datos.";
+                    tipoMensaje = "danger";
+                }
+            } else if ("unirse".equals(accion)) {
+                int retoId = Integer.parseInt(request.getParameter("retoId"));
+                boolean unido = retoDAO.unirseAReto(retoId, usuario.getId());
+                if (unido) {
+                    mensaje = "¡Te has unido al reto!";
+                } else {
+                    mensaje = "Ya participas en este reto o no se pudo procesar tu solicitud.";
+                    tipoMensaje = "warning";
+                }
+            } else if ("actualizar".equals(accion)) {
+                int retoId = Integer.parseInt(request.getParameter("retoId"));
+                int progreso = Integer.parseInt(request.getParameter("progreso"));
+                boolean actualizado = retoDAO.actualizarProgreso(retoId, usuario.getId(), progreso);
+                if (actualizado) {
+                    mensaje = "¡Progreso actualizado!";
+                } else {
+                    mensaje = "No se pudo actualizar el progreso.";
+                    tipoMensaje = "danger";
+                }
+            }
+        } catch (Exception e) {
+            mensaje = "Error al procesar la solicitud: " + e.getMessage();
+            tipoMensaje = "danger";
+        }
+
+        if (mensaje != null) {
+            session.setAttribute("mensajeFeedback", mensaje);
+            session.setAttribute("tipoMensajeFeedback", tipoMensaje);
         }
 
         response.sendRedirect("retos");

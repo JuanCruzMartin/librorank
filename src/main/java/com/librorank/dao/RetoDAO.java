@@ -1,6 +1,7 @@
 package com.librorank.dao;
 
 import com.librorank.config.DatabaseConfig;
+import com.librorank.model.ParticipanteReto;
 import com.librorank.model.RetoAmigo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,23 +19,34 @@ public class RetoDAO {
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, creadorId);
             stmt.setString(2, nombre);
-            if (libroId != null) stmt.setInt(3, libroId); else stmt.setNull(3, Types.INTEGER);
-            stmt.setString(4, fechaFin);
+            if (libroId != null && libroId > 0) stmt.setInt(3, libroId); else stmt.setNull(3, Types.INTEGER);
             
-            if (stmt.executeUpdate() > 0) {
+            // Asegurar formato de fecha para MySQL
+            try {
+                stmt.setDate(4, Date.valueOf(fechaFin));
+            } catch (Exception e) {
+                logger.error("Formato de fecha inválido: {}", fechaFin);
+                stmt.setNull(4, Types.DATE);
+            }
+            
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows > 0) {
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
                         int retoIdGenerated = rs.getInt(1);
+                        logger.info("Reto creado exitosamente con ID: {}", retoIdGenerated);
                         unirseAReto(retoIdGenerated, creadorId);
                         
-                        // REGISTRO SOCIAL
-                        new ActividadDAO().registrarActividad(creadorId, "NUEVO_LIBRO", libroId, "Ha lanzado un nuevo Reto: " + nombre);
+                        // REGISTRO SOCIAL - Usar un tipo más descriptivo o manejarlo en ActividadDAO
+                        new ActividadDAO().registrarActividad(creadorId, "NUEVO_RETO", libroId, "Ha lanzado un nuevo Reto: " + nombre);
                         
                         return true;
                     }
                 }
             }
-        } catch (SQLException e) { logger.error("Error al crear reto", e); }
+        } catch (SQLException e) { 
+            logger.error("Error al crear reto: {}", e.getMessage(), e); 
+        }
         return false;
     }
 
@@ -85,8 +97,8 @@ public class RetoDAO {
         return lista;
     }
 
-    private List<RetoAmigo.ParticipanteReto> obtenerParticipantes(int retoId) {
-        List<RetoAmigo.ParticipanteReto> participantes = new ArrayList<>();
+    private List<ParticipanteReto> obtenerParticipantes(int retoId) {
+        List<ParticipanteReto> participantes = new ArrayList<>();
         String sql = """
             SELECT p.*, u.username, u.avatar_url 
             FROM participantes_reto p 
@@ -98,11 +110,11 @@ public class RetoDAO {
             stmt.setInt(1, retoId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    RetoAmigo.ParticipanteReto p = new RetoAmigo.ParticipanteReto();
-                    p.usuarioId = rs.getInt("usuario_id");
-                    p.username = rs.getString("username");
-                    p.avatarUrl = rs.getString("avatar_url");
-                    p.progreso = rs.getInt("progreso");
+                    ParticipanteReto p = new ParticipanteReto();
+                    p.setUsuarioId(rs.getInt("usuario_id"));
+                    p.setUsername(rs.getString("username"));
+                    p.setAvatarUrl(rs.getString("avatar_url"));
+                    p.setProgreso(rs.getInt("progreso"));
                     participantes.add(p);
                 }
             }

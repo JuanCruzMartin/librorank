@@ -8,215 +8,187 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tu Biblioteca — LibroRank</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="Css/styles.css">
-    <style>
-        /* Corrección de visibilidad para el buscador */
-        .form-control-cozy, .form-select-cozy {
-            background-color: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(212, 175, 55, 0.3) !important;
-            color: #ffffff !important;
-        }
-
-        .form-control-cozy::placeholder {
-            color: rgba(255, 255, 255, 0.5) !important;
-        }
-
-        .form-control-cozy:focus, .form-select-cozy:focus {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border-color: #d4af37 !important;
-            box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25) !important;
-            color: #ffffff !important;
-        }
-
-        .form-select-cozy option {
-            background-color: #1a1a1a;
-            color: white;
-        }
-    </style>
 </head>
 <body>
 
 <jsp:include page="/includes/header.jsp" />
 
-<header class="library-header">
+<header class="library-header py-5" style="background: linear-gradient(135deg, #0a0a0a 0%, #151515 100%); border-bottom: 2px solid rgba(212, 175, 55, 0.2);">
     <div class="container">
-        <div class="row align-items-center g-4">
+        <div class="row g-4 align-items-center">
+            <!-- Columna Izquierda: Título y Buscador -->
             <div class="col-lg-5">
-                <h1 class="mb-1">Mi biblioteca</h1>
-                <p class="text-muted">Rincón de lectura de <strong>${usuarioLogueado.nombre}</strong></p>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-gold p-2 rounded-3 me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-collection-play-fill text-dark fs-4"></i>
+                    </div>
+                    <div>
+                        <h1 class="h2 fw-bold text-white mb-0">Mi Biblioteca</h1>
+                        <p class="text-muted small mb-0">Gestiona tu viaje literario</p>
+                    </div>
+                </div>
+                
+                <!-- Buscador Mejorado -->
+                <div class="search-box p-3 rounded-4" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    <label for="inputBusqueda" class="form-label text-gold small fw-bold mb-2 text-uppercase" style="letter-spacing: 1px;">
+                        ¿Qué quieres leer hoy?
+                    </label>
+                    <div class="input-group">
+                        <input type="text" id="inputBusqueda" 
+                               class="form-control bg-white text-dark border-0 fw-bold" 
+                               placeholder="Título del libro..." 
+                               oninput="debounceSearch()">
+                        <select id="selectEstadoVisual" class="form-select bg-dark text-white border-0 small" style="max-width: 140px; font-size: 0.85rem;">
+                            <option value="PENDIENTE">⏳ Pendiente</option>
+                            <option value="LEYENDO">📖 Leyendo</option>
+                            <option value="LEIDO">✅ Leído</option>
+                        </select>
+                        <button class="btn btn-gold px-3 border-0" type="button" onclick="realizarBusqueda()" title="Buscar nuevos libros">
+                            <i class="bi bi-search fw-bold"></i>
+                        </button>
+                    </div>
+                    <div id="resultadosBusqueda" class="mt-2" style="max-height: 250px; overflow-y: auto;"></div>
+                </div>
             </div>
 
+            <!-- Columna Derecha: Estadísticas Mejoradas -->
             <div class="col-lg-7">
-                <div class="search-container-cozy" id="buscadorGoogle">
-                   <div class="input-group">
-                       <input type="text" id="inputBusqueda" class="form-control form-control-lg form-control-cozy" placeholder="Escribe el título o autor...">
-
-                       <select id="selectEstadoVisual" class="form-select form-select-cozy">
-                           <option value="PENDIENTE">Pendiente</option>
-                           <option value="LEYENDO">Leyendo</option>
-                           <option value="LEIDO">Leído (+10 🪙)</option>
-                       </select>
-
-                       <button class="btn btn-gold px-4" type="button" id="btnBuscar">
-                           <i class="bi bi-search"></i>
-                       </button>
-                   </div>
-                    <div id="resultadosBusqueda" class="row g-2 mt-2"></div>
+                <div class="row g-3">
+                    <!-- Libros Leídos -->
+                    <div class="col-sm-6">
+                        <div class="stat-card p-3 rounded-4 d-flex align-items-center border" style="background: rgba(255,255,255,0.02); border-color: rgba(212, 175, 55, 0.1) !important; min-height: 80px;">
+                            <div class="stat-icon me-3 fs-3">📚</div>
+                            <div>
+                                <div class="text-gold small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Libros Leídos</div>
+                                <div class="h3 fw-black text-white mb-0" style="font-weight: 900; line-height: 1;">${statLeidos}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Páginas Totales -->
+                    <div class="col-sm-6">
+                        <div class="stat-card p-3 rounded-4 d-flex align-items-center border" style="background: rgba(255,255,255,0.02); border-color: rgba(212, 175, 55, 0.1) !important; min-height: 80px;">
+                            <div class="stat-icon me-3 fs-3">📄</div>
+                            <div>
+                                <div class="text-gold small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Páginas Leídas</div>
+                                <div class="h3 fw-black text-white mb-0" style="font-weight: 900; line-height: 1;">${statPaginas}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Autor más leído -->
+                    <div class="col-12">
+                        <div class="stat-card p-3 rounded-4 d-flex align-items-center border" style="background: rgba(255,255,255,0.02); border-color: rgba(212, 175, 55, 0.1) !important; min-height: 80px;">
+                            <div class="stat-icon me-3 fs-3">✍️</div>
+                            <div class="w-100 overflow-hidden">
+                                <div class="text-gold small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Autor más leído</div>
+                                <div class="text-white fw-bold text-truncate" style="font-size: 1.1rem;" title="${statAutor}">
+                                    ${not empty statAutor ? statAutor : 'Aún no hay datos'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Libro mejor puntuado -->
+                    <div class="col-12">
+                        <div class="stat-card p-3 rounded-4 d-flex align-items-center border" style="background: rgba(255,255,255,0.02); border-color: rgba(212, 175, 55, 0.1) !important; min-height: 80px;">
+                            <div class="stat-icon me-3 fs-3">⭐</div>
+                            <div class="w-100 overflow-hidden">
+                                <div class="text-gold small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Libro mejor puntuado</div>
+                                <div class="text-white fw-bold text-truncate" style="font-size: 1.1rem;" title="${statMejorLibro}">
+                                    ${not empty statMejorLibro ? statMejorLibro : 'Sin calificar'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </header>
 
-<main class="container mb-5">
+<main class="container my-5">
     <c:if test="${not empty mensajeOK}">
-        <div class="alert alert-success bg-dark text-success border-success mb-4">${mensajeOK}</div>
+        <div class="alert alert-success border-0 shadow-sm mb-4"><c:out value="${mensajeOK}"/></div>
     </c:if>
-   <section class="mb-4">
-           <div class="row g-3">
-               <div class="col-6 col-lg-3">
-                   <div class="stat-card h-100 mb-0">
-                       <div class="stat-icon"><i class="bi bi-book-half"></i></div>
-                       <div class="stat-details">
-                          <span class="stat-value">${statLeidos}</span>
-                           <span class="stat-label">Libros Leídos</span>
-                       </div>
-                   </div>
-               </div>
 
-               <div class="col-6 col-lg-3">
-                   <div class="stat-card h-100 mb-0">
-                       <div class="stat-icon"><i class="bi bi-file-earmark-text"></i></div>
-                       <div class="stat-details">
-                           <span class="stat-value">${statPaginas}</span>
-                           <span class="stat-label">Páginas Totales</span>
-                       </div>
-                   </div>
-               </div>
-
-               <div class="col-6 col-lg-3">
-                   <div class="stat-card h-100 mb-0">
-                       <div class="stat-icon"><i class="bi bi-pen"></i></div>
-                       <div class="stat-details">
-                          <span class="stat-value text-truncate" title="${statAutor}">${statAutor}</span>
-                           <span class="stat-label">Autor Más Leído</span>
-                       </div>
-                   </div>
-               </div>
-
-               <div class="col-6 col-lg-3">
-                   <div class="stat-card h-100 mb-0">
-                       <div class="stat-icon"><i class="bi bi-award"></i></div>
-                       <div class="stat-details">
-                          <span class="stat-value text-truncate" title="${statMejorLibro}">${statMejorLibro}</span>
-                           <span class="stat-label">Mejor Calificado</span>
-                       </div>
-                   </div>
-               </div>
-           </div>
-       </section>
-    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4">
-        <c:choose>
-            <c:when test="${empty libros}">
-                <div class="col-12 text-center py-5">
-                    <i class="bi bi-journal-x display-1 text-muted"></i>
-                    <p class="mt-3 text-muted">Tu estantería está vacía.</p>
-                </div>
-            </c:when>
-            <c:otherwise>
-                <c:forEach var="libro" items="${libros}">
-                    <div class="col">
-                        <article class="book-card card mb-0">
-                            <a href="biblioteca?eliminar=${libro.id}" class="btn-delete-icon" onclick="confirmarEliminar(event, 'Eliminar Libro', '¿Seguro que quieres quitar `${libro.titulo}` de tu biblioteca?');">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                            <button type="button" class="btn-edit-icon" data-id="${libro.id}" data-titulo="${libro.titulo}" data-estado="${libro.estado}"
-                                    data-estrellas="${not empty libro.estrellas ? libro.estrellas : 0}"
-                                    data-genero="${libro.genero}" data-mood="${libro.mood}"
-                                    data-resena="${not empty libro.resena ? libro.resena : ''}" onclick="abrirModalEdicion(this)">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <a href="diario?idLibro=${libro.id}" class="btn-journal-icon" title="Ver Diario">
-                                <i class="bi bi-journal-text"></i>
-                            </a>
-
-                            <div class="book-cover">
-                                <c:choose>
-                                    <c:when test="${not empty libro.portadaUrl}">
-                                        <img src="${libro.portadaUrl}" alt="${libro.titulo}" style="width: 100%; height: 100%; object-fit: cover;">
-                                    </c:when>
-                                    <c:otherwise>
-                                        <i class="bi bi-book text-muted fs-2"></i>
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-
-                            <span class="badge-cozy badge--${not empty libro.estado ? libro.estado.toLowerCase() : 'pendiente'} mb-2 d-inline-block">${libro.estado}</span>
-                            <h3 class="h6 fw-bold mb-0 text-truncate text-white" title="${libro.titulo}">
-                                <a href="libro?id=${libro.libroGlobalId}" class="text-decoration-none text-white">${libro.titulo}</a>
-                            </h3>
-                            <p class="small text-muted mb-2 text-truncate">${libro.autor}</p>
-
-                            <div class="text-warning small" style="font-size: 0.75rem;">
-                                <c:forEach begin="1" end="5" var="i">
-                                    <i class="bi bi-star${(not empty libro.estrellas and libro.estrellas >= i) ? '-fill' : ''}"></i>
-                                </c:forEach>
-                            </div>
-                        </article>
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-4" id="contenedorLibros">
+        <c:forEach var="libro" items="${libros}">
+            <div class="col book-item-container">
+                <div class="card h-100 bg-dark border-secondary text-white p-2">
+                    <div class="position-relative">
+                        <img src="${not empty libro.portadaUrl ? libro.portadaUrl : 'https://via.placeholder.com/150x225'}" class="card-img-top rounded shadow-sm" style="height: 200px; object-fit: cover;">
+                        <div class="position-absolute top-0 end-0 p-1">
+                            <a href="biblioteca?eliminar=${libro.id}" class="btn btn-danger btn-sm p-1" onclick="return confirm('¿Borrar?')"><i class="bi bi-trash"></i></a>
+                        </div>
                     </div>
-                </c:forEach>
-            </c:otherwise>
-        </c:choose>
+                    <div class="card-body p-2 text-center">
+                        <h6 class="card-title text-truncate mb-1"><c:out value="${libro.titulo}"/></h6>
+                        <p class="card-text small text-muted text-truncate mb-3"><c:out value="${libro.autor}"/></p>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="diario?idLibro=${libro.id}" class="btn btn-gold btn-sm">
+                                <i class="bi bi-journal-bookmark"></i> Diario / Citas
+                            </a>
+                            <button class="btn btn-outline-warning btn-sm" 
+                                    onclick="abrirModalEdicion('${libro.id}', '${libro.titulo}', '${libro.estado}', '${libro.estrellas}', '${libro.resena}')">
+                                <i class="bi bi-pencil"></i> Editar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </c:forEach>
     </div>
-<form action="biblioteca" method="post" id="formGuardarLibro" class="d-none">
+
+    <!-- Formulario oculto para añadir libros -->
+    <form action="biblioteca" method="post" id="formGuardarLibro" style="display:none;">
+        <input type="hidden" name="accion" value="nuevo">
         <input type="hidden" name="titulo" id="hTitulo">
         <input type="hidden" name="autor" id="hAutor">
         <input type="hidden" name="portadaUrl" id="hPortada">
-        <input type="hidden" name="estado" id="hEstado" value="PENDIENTE">
+        <input type="hidden" name="estado" id="hEstado">
         <input type="hidden" name="paginas" id="hPaginas">
     </form>
 
-    <div class="modal fade" id="modalEditarLibro" tabindex="-1" aria-hidden="true">
+    <!-- Modal Editar -->
+    <div class="modal fade" id="modalEditarLibro" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background-color: var(--bg-cozy); border: 1px solid var(--accent-gold);">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" style="color: var(--accent-gold);" id="modalTituloLibro">Editar Libro</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
+            <div class="modal-content bg-dark border-secondary text-white">
                 <form action="biblioteca" method="post">
+                    <input type="hidden" name="accion" value="editar">
+                    <input type="hidden" name="idLibro" id="editIdLibro">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title" id="modalTituloLibro">Editar Libro</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
                     <div class="modal-body">
-                        <input type="hidden" name="accion" value="editar">
-                        <input type="hidden" name="idLibro" id="editIdLibro">
                         <div class="mb-3">
-                            <label class="form-label text-muted small">Estado</label>
-                            <select name="estado" id="editEstado" class="form-select">
-                                <option value="PENDIENTE">Pendiente</option>
-                                <option value="LEYENDO">Leyendo</option>
-                                <option value="LEIDO">Leído</option>
+                            <label class="form-label">Estado</label>
+                            <select name="estado" id="editEstado" class="form-select bg-dark text-white border-secondary">
+                                <option value="PENDIENTE">⏳ Pendiente</option>
+                                <option value="LEYENDO">📖 Leyendo</option>
+                                <option value="LEIDO">✅ Leído</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label text-muted small">Calificación</label>
-                            <select name="estrellas" id="editEstrellas" class="form-select">
+                            <label class="form-label">Calificación</label>
+                            <select name="estrellas" id="editEstrellas" class="form-select bg-dark text-white border-secondary">
                                 <option value="0">Sin calificar</option>
-                                <option value="1">1 Estrella</option>
-                                <option value="2">2 Estrellas</option>
-                                <option value="3">3 Estrellas</option>
-                                <option value="4">4 Estrellas</option>
-                                <option value="5">5 Estrellas</option>
+                                <option value="5">⭐⭐⭐⭐⭐</option>
+                                <option value="4">⭐⭐⭐⭐</option>
+                                <option value="3">⭐⭐⭐</option>
+                                <option value="2">⭐⭐</option>
+                                <option value="1">⭐</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">Reseña</label>
-                            <textarea name="resena" id="editResena" class="form-control" rows="3"></textarea>
+                        <div class="mb-0">
+                            <label class="form-label">Reseña</label>
+                            <textarea name="resena" id="editResena" class="form-control bg-dark text-white border-secondary" rows="3"></textarea>
                         </div>
                     </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-gold btn-sm px-4">Guardar</button>
+                    <div class="modal-footer border-secondary">
+                        <button type="submit" class="btn btn-gold w-100">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
@@ -226,122 +198,72 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // 1. Agarramos los elementos del HTML
-        const inputBusqueda = document.getElementById('inputBusqueda');
-        const btnBuscar = document.getElementById('btnBuscar');
-        const contenedorResultados = document.getElementById('resultadosBusqueda');
+    var timeoutBusqueda = null;
 
-        // Elementos del formulario oculto
-        const formGuardar = document.getElementById('formGuardarLibro');
-        const hTitulo = document.getElementById('hTitulo');
-        const hAutor = document.getElementById('hAutor');
-        const hPortada = document.getElementById('hPortada');
-        const hPaginas = document.getElementById('hPaginas'); // Atrapamos el nuevo input
-
-        // 2. Evento: Cuando el usuario hace clic en "Buscar"
-        btnBuscar.addEventListener('click', realizarBusqueda);
-
-        // También permitir buscar al presionar ENTER
-        inputBusqueda.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                realizarBusqueda();
-            }
+    function debounceSearch() {
+        clearTimeout(timeoutBusqueda);
+        var texto = document.getElementById('inputBusqueda').value.toLowerCase();
+        
+        // Filtrado local
+        var cards = document.querySelectorAll('.book-item-container');
+        cards.forEach(function(c) {
+            var t = c.querySelector('.card-title').innerText.toLowerCase();
+            c.style.display = t.indexOf(texto) > -1 ? 'block' : 'none';
         });
 
-        function realizarBusqueda() {
-            let texto = inputBusqueda.value.trim();
-            if (texto === "") return;
+        if (texto.length > 2) {
+            timeoutBusqueda = setTimeout(realizarBusqueda, 600);
+        }
+    }
 
-            contenedorResultados.innerHTML = '<div class="col-12 text-center text-muted"><div class="spinner-border spinner-border-sm text-warning me-2"></div>Buscando en Google Books...</div>';
+    function realizarBusqueda() {
+        var texto = document.getElementById('inputBusqueda').value;
+        if (texto.length < 3) return;
 
-            let url = 'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(texto) + '&maxResults=6';
+        var res = document.getElementById('resultadosBusqueda');
+        res.innerHTML = '<div class="col-12 text-center text-muted small">Buscando nuevos...</div>';
 
-            fetch(url)
-                .then(respuesta => {
-                    if (!respuesta.ok) throw new Error("Error en la respuesta de la API");
-                    return respuesta.json();
-                })
-                .then(datos => {
-                    contenedorResultados.innerHTML = "";
+        fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(texto) + '&maxResults=6')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                res.innerHTML = "";
+                if (!data.items) return;
+                data.items.forEach(function(item) {
+                    var info = item.volumeInfo;
+                    var title = info.title || "Sin título";
+                    var author = info.authors ? info.authors[0] : "Anónimo";
+                    var img = info.imageLinks ? info.imageLinks.thumbnail : "";
+                    var pages = info.pageCount || 0;
 
-                    if (!datos.items || datos.items.length === 0) {
-                        contenedorResultados.innerHTML = '<div class="col-12 text-center text-danger">No se encontraron libros con ese nombre.</div>';
-                        return;
-                    }
-
-                    datos.items.forEach(libro => {
-                        let info = libro.volumeInfo;
-                        if (!info) return;
-
-                        let titulo = info.title || "Sin título";
-                        let autor = (info.authors && info.authors.length > 0) ? info.authors[0] : "Autor desconocido";
-                        
-                        // Buscar la mejor imagen disponible
-                        let portada = 'https://via.placeholder.com/128x192.png?text=Sin+Portada';
-                        if (info.imageLinks) {
-                            portada = info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || portada;
+                    var col = document.createElement('div');
+                    col.className = 'col-md-4';
+                    col.innerHTML = '<div class="card bg-secondary text-white p-2" style="cursor:pointer; font-size:0.7rem;">' +
+                        '<strong>' + title + '</strong><br>' + author + '</div>';
+                    col.onclick = function() {
+                        if (confirm('¿Añadir libro?')) {
+                            document.getElementById('hTitulo').value = title;
+                            document.getElementById('hAutor').value = author;
+                            document.getElementById('hPortada').value = img;
+                            document.getElementById('hPaginas').value = pages;
+                            document.getElementById('hEstado').value = document.getElementById('selectEstadoVisual').value;
+                            document.getElementById('formGuardarLibro').submit();
                         }
-                        portada = portada.replace('http:', 'https:');
-
-                        let paginas = info.pageCount || 0;
-
-                        // Escapar comillas para evitar errores en el HTML
-                        let tituloEscapado = titulo.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                        let autorEscapado = autor.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-
-                        let tarjetaHTML = '<div class="col-md-6">' +
-                            '<div class="book-card d-flex align-items-center p-2" style="cursor: pointer;" ' +
-                                 'onclick="guardarLibro(\'' + tituloEscapado + '\', \'' + autorEscapado + '\', \'' + portada + '\', ' + paginas + ')">' +
-                                '<img src="' + portada + '" alt="Portada" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px; margin-right: 15px;">' +
-                                '<div style="overflow: hidden;">' +
-                                    '<h6 class="mb-0 text-white text-truncate" style="font-size: 0.9rem;" title="' + titulo + '">' + titulo + '</h6>' +
-                                    '<small class="text-muted text-truncate d-block" style="font-size: 0.8rem;">' + autor + '</small>' +
-                                '</div>' +
-                            '</div>' +
-                        '</div>';
-
-                        contenedorResultados.innerHTML += tarjetaHTML;
-                    });
-                })
-                .catch(error => {
-                    console.error("Error en la API:", error);
-                    contenedorResultados.innerHTML = '<div class="col-12 text-center text-danger">No se pudo conectar con Google Books. Reintenta en unos instantes.</div>';
+                    };
+                    res.appendChild(col);
                 });
-        }
-
-        // 6. Función para enviar el libro a tu backend Java (Ahora recibe las páginas)
-        function guardarLibro(titulo, autor, portadaUrl, paginas) {
-            mostrarConfirmacion('Añadir a biblioteca', `¿Quieres añadir "${titulo}" a tu colección?`, () => {
-                hTitulo.value = titulo;
-                hAutor.value = autor;
-                hPortada.value = portadaUrl;
-                hPaginas.value = paginas;
-
-                const estadoElegido = document.getElementById('selectEstadoVisual').value;
-                document.getElementById('hEstado').value = estadoElegido;
-
-                formGuardar.submit();
             });
-        }
+    }
 
-        // 7. Función para abrir el modal de edición
-        function abrirModalEdicion(boton) {
-            const id = boton.getAttribute('data-id');
-            const titulo = boton.getAttribute('data-titulo');
-            const estado = boton.getAttribute('data-estado');
-            const estrellas = boton.getAttribute('data-estrellas');
-            const resena = boton.getAttribute('data-resena');
-
-            document.getElementById('editIdLibro').value = id;
-            document.getElementById('modalTituloLibro').innerText = 'Editando: ' + titulo;
-            document.getElementById('editEstado').value = estado;
-            document.getElementById('editEstrellas').value = estrellas;
-            document.getElementById('editResena').value = resena;
-
-            const modal = new bootstrap.Modal(document.getElementById('modalEditarLibro'));
-            modal.show();
-        }
+    function abrirModalEdicion(id, titulo, estado, estrellas, resena) {
+        document.getElementById('editIdLibro').value = id;
+        document.getElementById('modalTituloLibro').innerText = 'Editar: ' + titulo;
+        document.getElementById('editEstado').value = estado;
+        document.getElementById('editEstrellas').value = estrellas;
+        document.getElementById('editResena').value = resena;
+        new bootstrap.Modal(document.getElementById('modalEditarLibro')).show();
+    }
 </script>
+
 <jsp:include page="/includes/footer.jsp" />
 </body>
 </html>

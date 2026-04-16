@@ -53,10 +53,6 @@
                                     <div class="fw-bold text-gold">🔥 ${usuarioLogueado.rachaActual}</div>
                                     <div class="small text-muted">Racha</div>
                                 </div>
-                                <div class="text-center">
-                                    <div class="fw-bold text-gold">🪙 ${usuarioLogueado.monedas}</div>
-                                    <div class="small text-muted">Monedas</div>
-                                </div>
                             </div>
 
                             <hr class="my-4 opacity-10">
@@ -71,7 +67,6 @@
                             </c:if>
 
                             <a href="biblioteca" class="btn btn-gold w-100 mb-2">Mi Biblioteca</a>
-                            <a href="habitacion" class="btn btn-outline-light btn-sm w-100">Ver mi Habitación</a>
                         </div>
                     </div>
 
@@ -100,6 +95,7 @@
                                             <div class="feed-content my-2 text-white opacity-75">
                                                 <c:choose>
                                                     <c:when test="${act.tipoActividad == 'NUEVO_LIBRO'}">empezó a leer <strong class="text-gold">"${act.tituloLibro}"</strong></c:when>
+                                                    <c:when test="${act.tipoActividad == 'NUEVO_RETO'}">ha lanzado un <strong class="text-gold">Nuevo Reto Colectivo</strong>: "${act.detalle}"</c:when>
                                                     <c:when test="${act.tipoActividad == 'CAMBIO_ESTADO'}">marcó <strong class="text-gold">"${act.tituloLibro}"</strong> como <span class="badge-cozy">${act.detalle}</span></c:when>
                                                     <c:when test="${act.tipoActividad == 'NUEVA_CALIFICACION'}">puntuó <strong class="text-gold">"${act.tituloLibro}"</strong> con <span class="text-warning">${act.detalle} <i class="bi bi-star-fill"></i></span></c:when>
                                                     <c:when test="${act.tipoActividad == 'DIARIO_LOG'}">actualizó su progreso: <em>${act.detalle}</em></c:when>
@@ -125,7 +121,7 @@
         <div class="container">
             <div class="hero-content">
                 <h1>Tu hábito de lectura <span>ahora es un juego.</span></h1>
-                <p>La plataforma definitiva para lectores. Registra tus libros, gana monedas reales en el juego y construye el refugio literario de tus sueños.</p>
+                <p>La plataforma definitiva para lectores. Registra tus libros, compite con amigos y alcanza la cima del ranking literario.</p>
                 <div class="hero-btns">
                     <c:choose>
                         <c:when test="${empty sessionScope.usuarioLogueado}">
@@ -150,9 +146,9 @@
                 <p>Lleva un registro detallado de cada mundo que visitas a través de las páginas.</p>
             </div>
             <div class="feature-card">
-                <span class="feature-icon">💎</span>
-                <h3>Recompensas</h3>
-                <p>Transforma tu constancia en monedas. Compra muebles y arte para tu habitación virtual.</p>
+                <span class="feature-icon">🏆</span>
+                <h3>Logros Legendarios</h3>
+                <p>Desbloquea trofeos únicos a medida que devoras capítulos y completas desafíos.</p>
             </div>
             <div class="feature-card">
                 <span class="feature-icon">🏛️</span>
@@ -160,20 +156,6 @@
                 <p>Mídete con los mejores lectores y escala posiciones en el ranking legendario.</p>
             </div>
         </div>
-
-        <!-- GAME PREVIEW: IMMERSIVE IMAGE -->
-        <section class="game-preview">
-            <div class="game-text">
-                <h2 class="font-title text-white">Construye tu propio <br><span class="text-gold">refugio literario.</span></h2>
-                <p class="text-muted mb-5 lead">No solo lees libros, construyes un legado. Desbloquea muebles exclusivos y personaliza tu estudio de lectura a medida que avanzas en tus metas.</p>
-                <div class="coin-stat">
-                    🪙 +10 Monedas por libro finalizado
-                </div>
-            </div>
-            <div class="room-preview-box">
-                <!-- Imagen de fondo controlada por CSS -->
-            </div>
-        </section>
 
         <!-- RANKING PREVIEW -->
         <section class="card border-0 bg-transparent mb-5 pb-5">

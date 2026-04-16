@@ -13,13 +13,6 @@ public class RetoAmigo {
     private LocalDate fechaFin;
     private List<ParticipanteReto> participantes;
 
-    public static class ParticipanteReto {
-        public int usuarioId;
-        public String username;
-        public String avatarUrl;
-        public int progreso;
-    }
-
     public RetoAmigo() {}
 
     // Getters y Setters

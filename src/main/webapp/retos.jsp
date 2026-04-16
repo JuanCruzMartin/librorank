@@ -29,6 +29,14 @@
     </header>
 
     <main class="container py-5">
+        <c:if test="${not empty sessionScope.mensajeFeedback}">
+            <div class="alert alert-${sessionScope.tipoMensajeFeedback} alert-dismissible fade show" role="alert">
+                ${sessionScope.mensajeFeedback}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <% session.removeAttribute("mensajeFeedback"); session.removeAttribute("tipoMensajeFeedback"); %>
+        </c:if>
+
         <div class="row g-4">
             <c:choose>
                 <c:when test="${empty retos}">
@@ -68,8 +76,12 @@
                                     </div>
                                     <c:forEach var="p" items="${r.participantes}">
                                         <div class="mb-3">
-                                            <div class="d-flex justify-content-between small mb-1">
-                                                <span class="text-muted">@${p.username}</span>
+                                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="${not empty p.avatarUrl ? p.avatarUrl : 'assets/personajes/personaje_1.png'}" 
+                                                         alt="Avatar" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover; border: 1px solid var(--accent-gold);">
+                                                    <span class="text-muted">@${p.username}</span>
+                                                </div>
                                                 <span class="text-gold fw-bold">${p.progreso}%</span>
                                             </div>
                                             <div class="progress" style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px;">
@@ -123,12 +135,12 @@
                 <form action="retos" method="post">
                     <input type="hidden" name="accion" value="crear">
                     <div class="modal-body py-4">
-                        <div class="mb-3">
-                            <label class="form-label text-gold small fw-bold">NOMBRE DEL RETO</label>
+                        <div class="mb-4">
+                            <label class="form-label text-gold fw-bold mb-2" style="font-size: 0.85rem; letter-spacing: 0.5px;">NOMBRE DEL RETO</label>
                             <input type="text" name="nombre" class="form-control" placeholder="Ej: Maratón de Fantasía" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label text-gold small fw-bold">LIBRO OBJETIVO (OPCIONAL)</label>
+                        <div class="mb-4">
+                            <label class="form-label text-gold fw-bold mb-2" style="font-size: 0.85rem; letter-spacing: 0.5px;">LIBRO OBJETIVO (OPCIONAL)</label>
                             <select name="libroId" class="form-select">
                                 <option value="">Cualquier libro / Reto libre</option>
                                 <c:forEach var="l" items="${misLibros}">
@@ -136,8 +148,8 @@
                                 </c:forEach>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label text-gold small fw-bold">FECHA LÍMITE</label>
+                        <div class="mb-4">
+                            <label class="form-label text-gold fw-bold mb-2" style="font-size: 0.85rem; letter-spacing: 0.5px;">FECHA LÍMITE</label>
                             <input type="date" name="fechaFin" class="form-control" required>
                         </div>
                     </div>
