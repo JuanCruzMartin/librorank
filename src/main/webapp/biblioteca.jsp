@@ -235,12 +235,15 @@
                     var info = item.volumeInfo;
                     var title = info.title || "Sin título";
                     var author = info.authors ? info.authors[0] : "Anónimo";
-                    var img = info.imageLinks ? info.imageLinks.thumbnail : "https://via.placeholder.com/128x192?text=Sin+Portada";
                     
-                    // Forzar HTTPS para evitar bloqueo de contenido mixto
-                    if (img.startsWith('http:')) {
-                        img = img.replace('http:', 'https:');
+                    // Obtener imagen con fallback
+                    var img = "https://via.placeholder.com/128x192?text=Sin+Portada";
+                    if (info.imageLinks) {
+                        img = info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || img;
                     }
+                    
+                    // Forzar HTTPS y limpiar parámetros que puedan romper la carga
+                    img = img.replace(/^http:\/\//i, 'https://');
 
                     var pages = info.pageCount || 0;
 
@@ -249,8 +252,12 @@
                     col.innerHTML = `
                         <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; transition: transform 0.2s;">
                             <div class="row g-0 h-100">
-                                <div class="col-4">
-                                    <img src="${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 80px;">
+                                <div class="col-4 bg-secondary">
+                                    <img src="${img}" 
+                                         class="img-fluid h-100 w-100" 
+                                         style="object-fit: cover; min-height: 80px;"
+                                         referrerpolicy="no-referrer"
+                                         onerror="this.src='https://via.placeholder.com/128x192?text=Error+Carga'">
                                 </div>
                                 <div class="col-8 p-2">
                                     <div class="fw-bold text-truncate small" style="color: var(--accent-gold);">${title}</div>
