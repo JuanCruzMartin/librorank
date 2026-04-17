@@ -204,15 +204,18 @@
         clearTimeout(timeoutBusqueda);
         var texto = document.getElementById('inputBusqueda').value.toLowerCase();
         
-        // Filtrado local
+        // 1. Filtrado local (solo oculta lo que ya tienes en pantalla)
         var cards = document.querySelectorAll('.book-item-container');
         cards.forEach(function(c) {
             var t = c.querySelector('.card-title').innerText.toLowerCase();
             c.style.display = t.indexOf(texto) > -1 ? 'block' : 'none';
         });
 
-        if (texto.length > 2) {
-            timeoutBusqueda = setTimeout(realizarBusqueda, 600);
+        // 2. Si escribes más de 3 letras, buscamos en Google después de un breve delay
+        if (texto.length >= 3) {
+            timeoutBusqueda = setTimeout(realizarBusqueda, 700);
+        } else {
+            document.getElementById('resultadosBusqueda').innerHTML = "";
         }
     }
 
@@ -221,46 +224,45 @@
         if (texto.length < 3) return;
 
         var res = document.getElementById('resultadosBusqueda');
-        res.innerHTML = '<div class="col-12 text-center text-muted py-3"><div class="spinner-border spinner-border-sm text-gold me-2"></div>Buscando en la red...</div>';
+        res.innerHTML = '<div class="col-12 text-center text-muted py-3"><div class="spinner-border spinner-border-sm text-gold me-2"></div>Buscando en Google Books...</div>';
 
-        fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(texto) + '&maxResults=6')
-            .then(function(r) { return r.json(); })
+        fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(texto) + '&maxResults=6&printType=books')
+            .then(function(r) { 
+                if (!r.ok) throw new Error("Error en la red");
+                return r.json(); 
+            })
             .then(function(data) {
                 res.innerHTML = "";
-                if (!data.items) {
-                    res.innerHTML = '<div class="col-12 text-center text-muted small py-2">No se encontraron resultados.</div>';
+                console.log("Datos recibidos:", data); // Esto nos ayuda a debuguear en F12
+
+                if (!data.items || data.items.length === 0) {
+                    res.innerHTML = '<div class="col-12 text-center text-muted small py-2">No se encontraron libros nuevos con ese nombre.</div>';
                     return;
                 }
+                
                 data.items.forEach(function(item) {
                     var info = item.volumeInfo;
                     var title = info.title || "Sin título";
                     var author = info.authors ? info.authors[0] : "Anónimo";
                     
-                    // Obtener imagen con fallback
-                    var img = "https://via.placeholder.com/128x192?text=Sin+Portada";
+                    var img = "https://via.placeholder.com/128x192?text=No+Cover";
                     if (info.imageLinks) {
-                        img = info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || img;
+                        img = info.imageLinks.thumbnail || info.imageLinks.smallThumbnail;
+                        img = img.replace(/^http:\/\//i, 'https://');
                     }
-                    
-                    // Forzar HTTPS y limpiar parámetros que puedan romper la carga
-                    img = img.replace(/^http:\/\//i, 'https://');
 
                     var pages = info.pageCount || 0;
 
                     var col = document.createElement('div');
                     col.className = 'col-md-4 mb-2';
                     col.innerHTML = `
-                        <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; transition: transform 0.2s;">
+                        <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; border: 1px solid rgba(212,175,55,0.2) !important;">
                             <div class="row g-0 h-100">
-                                <div class="col-4 bg-secondary">
-                                    <img src="${img}" 
-                                         class="img-fluid h-100 w-100" 
-                                         style="object-fit: cover; min-height: 80px;"
-                                         referrerpolicy="no-referrer"
-                                         onerror="this.src='https://via.placeholder.com/128x192?text=Error+Carga'">
+                                <div class="col-4" style="background: #222;">
+                                    <img src="${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 85px;" referrerpolicy="no-referrer">
                                 </div>
                                 <div class="col-8 p-2">
-                                    <div class="fw-bold text-truncate small" style="color: var(--accent-gold);">${title}</div>
+                                    <div class="fw-bold text-truncate small" style="color: var(--accent-gold); font-size: 0.75rem;">${title}</div>
                                     <div class="text-muted text-truncate" style="font-size: 0.65rem;">${author}</div>
                                     <div class="mt-1"><span class="badge bg-gold text-dark" style="font-size: 0.55rem;">Añadir</span></div>
                                 </div>
@@ -268,7 +270,7 @@
                         </div>`;
                     
                     col.querySelector('.card').onclick = function() {
-                        if (confirm('¿Añadir "' + title + '" a tu biblioteca?')) {
+                        if (confirm('¿Añadir "' + title + '"?')) {
                             document.getElementById('hTitulo').value = title;
                             document.getElementById('hAutor').value = author;
                             document.getElementById('hPortada').value = img;
@@ -279,6 +281,10 @@
                     };
                     res.appendChild(col);
                 });
+            })
+            .catch(function(error) {
+                console.error("Error en búsqueda:", error);
+                res.innerHTML = '<div class="col-12 text-center text-danger small py-2">Hubo un problema conectando con el buscador.</div>';
             });
     }
 
