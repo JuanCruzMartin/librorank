@@ -33,8 +33,8 @@
                 
                 <!-- Buscador Mejorado -->
                 <div class="search-box p-3 rounded-4" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                    <label for="inputBusqueda" class="form-label text-gold small fw-bold mb-2 text-uppercase" style="letter-spacing: 1px;">
-                        ¿Qué quieres leer hoy?
+                    <label for="inputBusqueda" class="form-label text-gold fw-bold mb-2 text-uppercase" style="letter-spacing: 1.5px; font-size: 0.8rem;">
+                        <i class="bi bi-plus-circle-fill me-2"></i>Buscar libro para añadir
                     </label>
                     <div class="input-group">
                         <input type="text" id="inputBusqueda" 
