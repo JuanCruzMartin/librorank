@@ -221,26 +221,47 @@
         if (texto.length < 3) return;
 
         var res = document.getElementById('resultadosBusqueda');
-        res.innerHTML = '<div class="col-12 text-center text-muted small">Buscando nuevos...</div>';
+        res.innerHTML = '<div class="col-12 text-center text-muted py-3"><div class="spinner-border spinner-border-sm text-gold me-2"></div>Buscando en la red...</div>';
 
         fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(texto) + '&maxResults=6')
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 res.innerHTML = "";
-                if (!data.items) return;
+                if (!data.items) {
+                    res.innerHTML = '<div class="col-12 text-center text-muted small py-2">No se encontraron resultados.</div>';
+                    return;
+                }
                 data.items.forEach(function(item) {
                     var info = item.volumeInfo;
                     var title = info.title || "Sin título";
                     var author = info.authors ? info.authors[0] : "Anónimo";
-                    var img = info.imageLinks ? info.imageLinks.thumbnail : "";
+                    var img = info.imageLinks ? info.imageLinks.thumbnail : "https://via.placeholder.com/128x192?text=Sin+Portada";
+                    
+                    // Forzar HTTPS para evitar bloqueo de contenido mixto
+                    if (img.startsWith('http:')) {
+                        img = img.replace('http:', 'https:');
+                    }
+
                     var pages = info.pageCount || 0;
 
                     var col = document.createElement('div');
-                    col.className = 'col-md-4';
-                    col.innerHTML = '<div class="card bg-secondary text-white p-2" style="cursor:pointer; font-size:0.7rem;">' +
-                        '<strong>' + title + '</strong><br>' + author + '</div>';
-                    col.onclick = function() {
-                        if (confirm('¿Añadir libro?')) {
+                    col.className = 'col-md-4 mb-2';
+                    col.innerHTML = `
+                        <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; transition: transform 0.2s;">
+                            <div class="row g-0 h-100">
+                                <div class="col-4">
+                                    <img src="${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 80px;">
+                                </div>
+                                <div class="col-8 p-2">
+                                    <div class="fw-bold text-truncate small" style="color: var(--accent-gold);">${title}</div>
+                                    <div class="text-muted text-truncate" style="font-size: 0.65rem;">${author}</div>
+                                    <div class="mt-1"><span class="badge bg-gold text-dark" style="font-size: 0.55rem;">Añadir</span></div>
+                                </div>
+                            </div>
+                        </div>`;
+                    
+                    col.querySelector('.card').onclick = function() {
+                        if (confirm('¿Añadir "' + title + '" a tu biblioteca?')) {
                             document.getElementById('hTitulo').value = title;
                             document.getElementById('hAutor').value = author;
                             document.getElementById('hPortada').value = img;
