@@ -15,6 +15,9 @@
     <div class="user-avatar-small me-3" style="width: 50px; height: 50px; flex-shrink: 0;">
         <c:set var="uAvatar" value="${not empty user.avatarUrl ? user.avatarUrl : 'personaje_1'}" />
         <c:choose>
+            <c:when test="${fn:contains(uAvatar, '/')}">
+                <img src="${uAvatar}" style="width:100%; height:100%; object-fit: cover; border-radius: 50%;">
+            </c:when>
             <c:when test="${fn:startsWith(uAvatar, 'personaje_')}">
                 <img src="assets/personajes/${uAvatar}.png" style="width:100%; height:100%; object-fit: contain;">
             </c:when>
