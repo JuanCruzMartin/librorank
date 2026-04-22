@@ -228,12 +228,14 @@
 
         fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(texto) + '&maxResults=6&printType=books')
             .then(function(r) { 
-                if (!r.ok) throw new Error("Error en la red");
+                if (!r.ok) {
+                    throw new Error("Respuesta no OK: " + r.status);
+                }
                 return r.json(); 
             })
             .then(function(data) {
                 res.innerHTML = "";
-                console.log("Datos recibidos:", data); // Esto nos ayuda a debuguear en F12
+                console.log("Datos recibidos:", data);
 
                 if (!data.items || data.items.length === 0) {
                     res.innerHTML = '<div class="col-12 text-center text-muted small py-2">No se encontraron libros nuevos con ese nombre.</div>';
@@ -248,6 +250,7 @@
                     var img = "https://via.placeholder.com/128x192?text=No+Cover";
                     if (info.imageLinks) {
                         img = info.imageLinks.thumbnail || info.imageLinks.smallThumbnail;
+                        // Forzar HTTPS en las portadas de Google
                         img = img.replace(/^http:\/\//i, 'https://');
                     }
 
@@ -259,7 +262,7 @@
                         <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; border: 1px solid rgba(212,175,55,0.2) !important;">
                             <div class="row g-0 h-100">
                                 <div class="col-4" style="background: #222;">
-                                    <img src="${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 85px;" referrerpolicy="no-referrer">
+                                    <img src="${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 85px;" referrerpolicy="no-referrer" onerror="this.src='https://via.placeholder.com/128x192?text=Error'">
                                 </div>
                                 <div class="col-8 p-2">
                                     <div class="fw-bold text-truncate small" style="color: var(--accent-gold); font-size: 0.75rem;">${title}</div>
@@ -284,7 +287,7 @@
             })
             .catch(function(error) {
                 console.error("Error en búsqueda:", error);
-                res.innerHTML = '<div class="col-12 text-center text-danger small py-2">Hubo un problema conectando con el buscador.</div>';
+                res.innerHTML = '<div class="col-12 text-center text-danger small py-2">No se pudo conectar con Google Books. Reintentá en unos segundos.</div>';
             });
     }
 
