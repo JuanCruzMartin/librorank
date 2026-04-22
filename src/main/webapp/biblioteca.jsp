@@ -264,11 +264,11 @@
                         <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; border: 1px solid rgba(212,175,55,0.2) !important;">
                             <div class="row g-0 h-100">
                                 <div class="col-4" style="background: #222;">
-                                    <img src="${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 85px;" referrerpolicy="no-referrer" onerror="this.src='https://via.placeholder.com/128x192?text=Error'">
+                                    <img src="\${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 85px;" referrerpolicy="no-referrer" onerror="this.src='https://via.placeholder.com/128x192?text=Error'">
                                 </div>
                                 <div class="col-8 p-2">
-                                    <div class="fw-bold text-truncate small" style="color: var(--accent-gold); font-size: 0.75rem;">${title}</div>
-                                    <div class="text-muted text-truncate" style="font-size: 0.65rem;">${author}</div>
+                                    <div class="fw-bold text-truncate small" style="color: var(--accent-gold); font-size: 0.75rem;">\${title}</div>
+                                    <div class="text-muted text-truncate" style="font-size: 0.65rem;">\${author}</div>
                                     <div class="mt-1"><span class="badge bg-gold text-dark" style="font-size: 0.55rem;">Añadir</span></div>
                                 </div>
                             </div>
