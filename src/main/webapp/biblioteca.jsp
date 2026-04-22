@@ -226,10 +226,12 @@
         var res = document.getElementById('resultadosBusqueda');
         res.innerHTML = '<div class="col-12 text-center text-muted py-3"><div class="spinner-border spinner-border-sm text-gold me-2"></div>Buscando en Google Books...</div>';
 
-        fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(texto) + '&maxResults=6&printType=books')
+        // Llamar a nuestro propio servidor (puente) para ocultar la API Key y evitar bloqueos
+        fetch('api/buscar-libro?q=' + encodeURIComponent(texto))
             .then(function(r) { 
                 if (!r.ok) {
-                    throw new Error("Respuesta no OK: " + r.status);
+                    if (r.status === 429) throw new Error("Límite de búsquedas excedido. Esperá un momento.");
+                    throw new Error("Error en el servidor: " + r.status);
                 }
                 return r.json(); 
             })
