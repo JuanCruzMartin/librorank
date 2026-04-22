@@ -29,6 +29,13 @@
             <h1>Crea tu cuenta</h1>
             <p class="text-muted">Unite a miles de lectores y empezá a construir tu habitación.</p>
 
+            <%-- Mostrar error si existe --%>
+            <% if (request.getAttribute("errorSignup") != null) { %>
+                <div class="alert alert-danger" style="color: #ff4d4d; background: rgba(255, 77, 77, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ff4d4d;">
+                    <%= request.getAttribute("errorSignup") %>
+                </div>
+            <% } %>
+
             <form action="signup" method="post" novalidate>
                 <div class="row">
                     <div class="col-md-6">
@@ -63,6 +70,13 @@
                             <input type="password" id="password2" name="password2" class="auth-input" placeholder="••••••••" required>
                         </div>
                     </div>
+                </div>
+
+                <div class="field-checkbox" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="terms" name="terms" required style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="terms" style="font-size: 0.9rem; color: #ccc; cursor: pointer;">
+                        Acepto los <a href="#" style="color: #d4af37; text-decoration: none;">términos y condiciones</a>
+                    </label>
                 </div>
 
                 <button class="btn-auth" type="submit">

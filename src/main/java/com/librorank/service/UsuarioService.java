@@ -68,6 +68,8 @@ public class UsuarioService {
         if (usuario.getAvatarUrl() == null) usuario.setAvatarUrl("avatar_explorador");
         if (usuario.getNivelId() == null) usuario.setNivelId(1);
         if (usuario.getMonedas() == 0) usuario.setMonedas(0);
+        if (usuario.getObjetivoAnual() == null) usuario.setObjetivoAnual(0);
+        if (usuario.getRachaActual() == 0) usuario.setRachaActual(0);
 
         return usuarioDAO.registrar(usuario);
     }
