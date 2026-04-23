@@ -342,14 +342,19 @@ public class LibroDAO {
     }
 
     public String obtenerAutorMasLeido(int usuarioId){
-        String sql = "SELECT autor FROM libros_usuario WHERE usuario_id = ? AND autor != '' GROUP BY autor ORDER BY COUNT(*) DESC LIMIT 1";
+        String sql = "SELECT autor FROM libros_usuario " +
+                     "WHERE usuario_id = ? AND autor != '' AND UPPER(estado) IN ('LEIDO', 'LEÍDO') " +
+                     "GROUP BY autor ORDER BY COUNT(*) DESC LIMIT 1";
         try(Connection conn = DatabaseConfig.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)){
             stmt.setInt(1, usuarioId);
             try(ResultSet rs = stmt.executeQuery()){
                 if (rs.next()) return rs.getString("autor");
             }
-        } catch(SQLException e){ return "N/A"; }
+        } catch(SQLException e){ 
+            logger.error("Error al obtener autor más leído para ID {}", usuarioId, e);
+            return "N/A"; 
+        }
         return "N/A";
     }
 
