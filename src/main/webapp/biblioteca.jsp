@@ -50,7 +50,7 @@
                             <i class="bi bi-search fw-bold"></i>
                         </button>
                     </div>
-                    <div id="resultadosBusqueda" class="mt-2" style="max-height: 250px; overflow-y: auto;"></div>
+                    <div id="resultadosBusqueda" class="mt-2 row g-2" style="max-height: 400px; overflow-y: auto;"></div>
                 </div>
             </div>
 
