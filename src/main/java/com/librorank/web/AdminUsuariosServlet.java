@@ -76,16 +76,37 @@ public class AdminUsuariosServlet extends HttpServlet {
         try (Connection conn = DatabaseConfig.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                // Borrar libros primero por la FK
-                try (PreparedStatement st1 = conn.prepareStatement("DELETE FROM libros_usuario WHERE usuario_id = ?")) {
-                    st1.setInt(1, id);
-                    st1.executeUpdate();
+                // 1. Borrar de la tabla amigos (ambas direcciones)
+                try (PreparedStatement st = conn.prepareStatement("DELETE FROM amigos WHERE usuario_id = ? OR amigo_id = ?")) {
+                    st.setInt(1, id);
+                    st.setInt(2, id);
+                    st.executeUpdate();
                 }
-                // Borrar usuario
-                try (PreparedStatement st2 = conn.prepareStatement("DELETE FROM usuarios WHERE id = ?")) {
-                    st2.setInt(1, id);
-                    st2.executeUpdate();
+                
+                // 2. Borrar diario de lectura de sus libros
+                try (PreparedStatement st = conn.prepareStatement("DELETE FROM diario_lectura WHERE libro_id IN (SELECT id FROM libros_usuario WHERE usuario_id = ?)")) {
+                    st.setInt(1, id);
+                    st.executeUpdate();
                 }
+
+                // 3. Borrar sus libros
+                try (PreparedStatement st = conn.prepareStatement("DELETE FROM libros_usuario WHERE usuario_id = ?")) {
+                    st.setInt(1, id);
+                    st.executeUpdate();
+                }
+
+                // 4. Borrar movimientos de monedas
+                try (PreparedStatement st = conn.prepareStatement("DELETE FROM movimientos_moneda WHERE usuario_id = ?")) {
+                    st.setInt(1, id);
+                    st.executeUpdate();
+                }
+
+                // 5. Borrar usuario
+                try (PreparedStatement st = conn.prepareStatement("DELETE FROM usuarios WHERE id = ?")) {
+                    st.setInt(1, id);
+                    st.executeUpdate();
+                }
+
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
