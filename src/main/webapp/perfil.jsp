@@ -123,9 +123,14 @@
 
                 <section class="perfil-main">
                     <div class="inventory-tabs" style="margin-bottom: 2rem;">
-                        <button class="tab-btn active" id="btn-resumen" onclick="switchProfileTab('resumen', this)">✨ Mi Resumen</button>
-                        <button class="tab-btn" id="btn-amigos" onclick="switchProfileTab('amigos', this)">👥 Amigos</button>
-                        <button class="tab-btn" id="btn-config" onclick="switchProfileTab('config', this)">⚙️ Editar Cuenta</button>
+                        <button class="tab-btn active" id="btn-resumen" onclick="switchProfileTab('resumen', this)">✨ ${esMiPerfil ? 'Mi Resumen' : 'Resumen'}</button>
+                        <c:if test="${esMiPerfil}">
+                            <button class="tab-btn" id="btn-amigos" onclick="switchProfileTab('amigos', this)">👥 Amigos</button>
+                            <button class="tab-btn" id="btn-config" onclick="switchProfileTab('config', this)">⚙️ Editar Cuenta</button>
+                        </c:if>
+                        <c:if test="${not esMiPerfil}">
+                            <button class="tab-btn" id="btn-biblioteca" onclick="switchProfileTab('biblioteca', this)">📚 Biblioteca</button>
+                        </c:if>
                     </div>
 
                     <div id="tab-amigos" class="profile-tab-content" style="display: none;">
@@ -160,13 +165,30 @@
                         <article class="card perfil-section">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                                 <h2 style="margin:0; border:none; padding:0;">Últimas conquistas</h2>
-                                <a href="biblioteca" class="text-gold fw-bold text-decoration-none small">Ver biblioteca completa →</a>
+                                <c:choose>
+                                    <c:when test="${esMiPerfil}">
+                                        <a href="biblioteca" class="text-gold fw-bold text-decoration-none small">Ver biblioteca completa →</a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <button onclick="switchProfileTab('biblioteca', document.getElementById('btn-biblioteca'))" class="btn btn-link text-gold fw-bold text-decoration-none p-0 small">Ver biblioteca completa →</button>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                             <div class="grid-lecturas">
+                                <c:if test="${empty ultimasLecturas}">
+                                    <p class="text-muted text-center py-3">Aún no hay lecturas registradas.</p>
+                                </c:if>
                                 <c:forEach var="l" items="${ultimasLecturas}">
                                     <div class="card-lectura-mini">
                                         <div style="width: 45px; height: 65px; background: #222; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(212, 175, 55, 0.2);">
-                                            <span>📕</span>
+                                            <c:choose>
+                                                <c:when test="${not empty l.portadaUrl}">
+                                                    <img src="${l.portadaUrl}" style="width:100%; height:100%; object-fit: cover; border-radius: 5px;">
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span>📕</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                         <div style="flex-grow: 1; min-width: 0;">
                                             <h4 class="text-truncate">${l.titulo}</h4>
@@ -185,6 +207,33 @@
                                     <div class="trophy-item ${logro.desbloqueado ? 'desbloqueado' : ''}" title="${logro.descripcion}">
                                         <span class="trophy-icon">${logro.icono}</span>
                                         <p class="trophy-title">${logro.desbloqueado ? logro.titulo : '???'}</p>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div id="tab-biblioteca" class="profile-tab-content" style="display: none;">
+                        <article class="card perfil-section">
+                            <h2>Biblioteca de <c:out value="${usuarioMostrado.nombre}"/></h2>
+                            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                                <c:if test="${empty todosLosLibros}">
+                                    <div class="col-12 text-center py-5">
+                                        <p class="text-muted">Este usuario aún no tiene libros en su biblioteca.</p>
+                                    </div>
+                                </c:if>
+                                <c:forEach var="libro" items="${todosLosLibros}">
+                                    <div class="col">
+                                        <div class="card h-100 bg-dark border-secondary text-white p-2 text-center" style="border: 1px solid rgba(255,255,255,0.05) !important;">
+                                            <img src="${not empty libro.portadaUrl ? libro.portadaUrl : 'https://via.placeholder.com/150x225'}" 
+                                                 class="rounded shadow-sm mb-2" 
+                                                 style="height: 140px; object-fit: cover;">
+                                            <h6 class="card-title text-truncate small mb-1"><c:out value="${libro.titulo}"/></h6>
+                                            <p class="card-text text-muted text-truncate" style="font-size: 0.7rem;"><c:out value="${libro.autor}"/></p>
+                                            <span class="badge-cozy small" style="font-size: 0.6rem; opacity: 0.8;">
+                                                ${libro.estado == 'LEIDO' ? '✅ Leído' : (libro.estado == 'LEYENDO' ? '📖 Leyendo' : '⏳ Pendiente')}
+                                            </span>
+                                        </div>
                                     </div>
                                 </c:forEach>
                             </div>

@@ -99,6 +99,10 @@ public class PerfilServlet extends HttpServlet {
         List<Libro> ultimasLecturas = libroDAO.obtenerUltimasLecturas(usuarioMostrado.getId(), 3);
         request.setAttribute("ultimasLecturas", ultimasLecturas);
 
+        // Cargar todos los libros para la pestaña de biblioteca en el perfil
+        List<Libro> todosLosLibros = libroDAO.obtenerLibrosPorUsuario(usuarioMostrado.getId());
+        request.setAttribute("todosLosLibros", todosLosLibros);
+
         // Achievements
         List<Logro> listaLogros = new ArrayList<>();
         listaLogros.add(new Logro("El despertar", "Leíste tu primer libro", "🌱", leidosTotal >= 1));
