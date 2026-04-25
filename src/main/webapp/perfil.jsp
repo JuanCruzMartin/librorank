@@ -8,7 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mi perfil — LibroRank</title>
+    <title>Perfil de <c:out value="${usuarioMostrado.nombre}"/> — LibroRank</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
@@ -24,17 +24,16 @@
 
 <main id="content" class="page">
     <section class="section">
-
         <div class="container">
 
             <c:if test="${not esMiPerfil}">
                 <div style="margin-bottom: 1rem;">
-                    <a href="perfil" class="btn btn--sm btn--ghost">← Volver a mi perfil</a>
+                    <a href="perfil" class="btn btn-sm btn-outline-warning">← Volver a mi perfil</a>
                 </div>
             </c:if>
 
             <c:if test="${not empty sessionScope.mensajeOk}">
-                <div class="alert alert--success">
+                <div class="alert alert-success">
                     ${sessionScope.mensajeOk}
                 </div>
                 <c:remove var="mensajeOk" scope="session"/>
@@ -58,7 +57,7 @@
                                 </c:otherwise>
                             </c:choose>
                             
-                            <c:if test="${usuarioLogueado.id == usuarioMostrado.id}">
+                            <c:if test="${esMiPerfil}">
                                 <div id="loadingFoto" style="display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.6); border-radius: 50%; z-index: 20; align-items: center; justify-content: center;">
                                     <div class="spinner-border text-gold" role="status" style="width: 2rem; height: 2rem;"></div>
                                 </div>
@@ -68,13 +67,6 @@
                                     </label>
                                     <input type="file" name="fotoPerfil" id="inputFoto" accept="image/*" style="display: none;" onchange="enviarFormularioFoto()">
                                 </form>
-                                <style>
-                                    label[for="inputFoto"]:hover {
-                                        background: var(--accent-gold) !important;
-                                        color: #000 !important;
-                                        transform: scale(1.1);
-                                    }
-                                </style>
                             </c:if>
                         </div>
                         <div class="user-meta">
@@ -123,7 +115,7 @@
 
                 <section class="perfil-main">
                     <div class="inventory-tabs" style="margin-bottom: 2rem;">
-                        <button class="tab-btn active" id="btn-resumen" onclick="switchProfileTab('resumen', this)">✨ ${esMiPerfil ? 'Mi Resumen' : 'Resumen'}</button>
+                        <button class="tab-btn active" id="btn-resumen" onclick="switchProfileTab('resumen', this)">✨ Resumen</button>
                         <c:if test="${esMiPerfil}">
                             <button class="tab-btn" id="btn-amigos" onclick="switchProfileTab('amigos', this)">👥 Amigos</button>
                             <button class="tab-btn" id="btn-config" onclick="switchProfileTab('config', this)">⚙️ Editar Cuenta</button>
@@ -133,34 +125,7 @@
                         </c:if>
                     </div>
 
-                    <div id="tab-amigos" class="profile-tab-content" style="display: none;">
-                        <article class="card perfil-section">
-                            <h2>Buscar nuevos amigos</h2>
-                            <form action="amigos" method="get" style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
-                                <input type="text" name="q" placeholder="Buscar por usuario o email..." style="flex-grow: 1;" required>
-                                <button type="submit" class="btn btn--brand">Buscar</button>
-                            </form>
-                            <c:if test="${not empty resultadosBusqueda}">
-                                <div class="grid-lecturas">
-                                    <c:forEach var="u" items="${resultadosBusqueda}">
-                                        <c:set var="user" value="${u}" scope="request" />
-                                        <jsp:include page="/includes/userCard.jsp" />
-                                    </c:forEach>
-                                </div>
-                            </c:if>
-                        </article>
-
-                        <article class="card perfil-section">
-                            <h2>Mis amigos</h2>
-                            <div class="grid-lecturas">
-                                <c:forEach var="a" items="${amigos}">
-                                    <c:set var="user" value="${a}" scope="request" />
-                                    <jsp:include page="/includes/userCard.jsp" />
-                                </c:forEach>
-                            </div>
-                        </article>
-                    </div>
-
+                    <!-- TAB: RESUMEN -->
                     <div id="tab-resumen" class="profile-tab-content active">
                         <article class="card perfil-section">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -180,10 +145,10 @@
                                 </c:if>
                                 <c:forEach var="l" items="${ultimasLecturas}">
                                     <div class="card-lectura-mini">
-                                        <div style="width: 45px; height: 65px; background: #222; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(212, 175, 55, 0.2);">
+                                        <div style="width: 45px; height: 65px; background: #222; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(212, 175, 55, 0.2); overflow: hidden;">
                                             <c:choose>
                                                 <c:when test="${not empty l.portadaUrl}">
-                                                    <img src="${l.portadaUrl}" style="width:100%; height:100%; object-fit: cover; border-radius: 5px;">
+                                                    <img src="${l.portadaUrl}" style="width:100%; height:100%; object-fit: cover;">
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span>📕</span>
@@ -213,61 +178,96 @@
                         </article>
                     </div>
 
-                    <div id="tab-biblioteca" class="profile-tab-content" style="display: none;">
-                        <article class="card perfil-section">
-                            <h2>Biblioteca de <c:out value="${usuarioMostrado.nombre}"/></h2>
-                            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
-                                <c:if test="${empty todosLosLibros}">
-                                    <div class="col-12 text-center py-5">
-                                        <p class="text-muted">Este usuario aún no tiene libros en su biblioteca.</p>
+                    <!-- TABS SOLO PARA MI PERFIL -->
+                    <c:if test="${esMiPerfil}">
+                        <div id="tab-amigos" class="profile-tab-content" style="display: none;">
+                            <article class="card perfil-section">
+                                <h2>Buscar nuevos amigos</h2>
+                                <form action="amigos" method="get" style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
+                                    <input type="text" name="q" placeholder="Buscar por usuario o email..." style="flex-grow: 1;" class="form-control bg-dark text-white border-secondary" required>
+                                    <button type="submit" class="btn btn-gold">Buscar</button>
+                                </form>
+                                <c:if test="${not empty resultadosBusqueda}">
+                                    <div class="grid-lecturas">
+                                        <c:forEach var="u" items="${resultadosBusqueda}">
+                                            <c:set var="user" value="${u}" scope="request" />
+                                            <jsp:include page="/includes/userCard.jsp" />
+                                        </c:forEach>
                                     </div>
                                 </c:if>
-                                <c:forEach var="libro" items="${todosLosLibros}">
-                                    <div class="col">
-                                        <div class="card h-100 bg-dark border-secondary text-white p-2 text-center" style="border: 1px solid rgba(255,255,255,0.05) !important;">
-                                            <img src="${not empty libro.portadaUrl ? libro.portadaUrl : 'https://via.placeholder.com/150x225'}" 
-                                                 class="rounded shadow-sm mb-2" 
-                                                 style="height: 140px; object-fit: cover;">
-                                            <h6 class="card-title text-truncate small mb-1"><c:out value="${libro.titulo}"/></h6>
-                                            <p class="card-text text-muted text-truncate" style="font-size: 0.7rem;"><c:out value="${libro.autor}"/></p>
-                                            <span class="badge-cozy small" style="font-size: 0.6rem; opacity: 0.8;">
-                                                ${libro.estado == 'LEIDO' ? '✅ Leído' : (libro.estado == 'LEYENDO' ? '📖 Leyendo' : '⏳ Pendiente')}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </c:forEach>
-                            </div>
-                        </article>
-                    </div>
-
-                    <div id="tab-config" class="profile-tab-content" style="display: none;">
-                        <form class="perfil-form" action="perfil" method="post">
+                            </article>
                             <article class="card perfil-section">
-                                <h2>Datos de la cuenta</h2>
-                                <div class="form-grid">
-                                    <div class="field">
-                                        <label for="nombre">Nombre completo</label>
-                                        <input type="text" id="nombre" name="nombre" value="${usuarioLogueado.nombre}">
-                                    </div>
-                                    <div class="field">
-                                        <label for="usuario">Nombre de usuario</label>
-                                        <input type="text" id="usuario" name="usuario" value="${usuarioLogueado.username}">
-                                    </div>
-                                    <div class="field field--full">
-                                        <label for="email">Email</label>
-                                        <input type="email" id="email" name="email" value="${usuarioLogueado.email}">
-                                    </div>
-                                    <div class="field field--full">
-                                        <label for="bio">Biografía</label>
-                                        <textarea id="bio" name="bio" rows="3">${usuarioLogueado.bio}</textarea>
-                                    </div>
-                                </div>
-                                <div class="mt-3">
-                                    <button class="btn--brand px-5 py-3" type="submit">Guardar cambios</button>
+                                <h2>Mis amigos</h2>
+                                <div class="grid-lecturas">
+                                    <c:forEach var="a" items="${amigos}">
+                                        <c:set var="user" value="${a}" scope="request" />
+                                        <jsp:include page="/includes/userCard.jsp" />
+                                    </c:forEach>
                                 </div>
                             </article>
-                        </form>
-                    </div>
+                        </div>
+
+                        <div id="tab-config" class="profile-tab-content" style="display: none;">
+                            <form class="perfil-form" action="perfil" method="post">
+                                <article class="card perfil-section">
+                                    <h2>Datos de la cuenta</h2>
+                                    <div class="form-grid">
+                                        <div class="field">
+                                            <label for="nombre">Nombre completo</label>
+                                            <input type="text" id="nombre" name="nombre" value="${usuarioLogueado.nombre}">
+                                        </div>
+                                        <div class="field">
+                                            <label for="usuario">Nombre de usuario</label>
+                                            <input type="text" id="usuario" name="usuario" value="${usuarioLogueado.username}">
+                                        </div>
+                                        <div class="field field--full">
+                                            <label for="email">Email</label>
+                                            <input type="email" id="email" name="email" value="${usuarioLogueado.email}">
+                                        </div>
+                                        <div class="field field--full">
+                                            <label for="bio">Biografía</label>
+                                            <textarea id="bio" name="bio" rows="3">${usuarioLogueado.bio}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn--brand px-5 py-3" type="submit">Guardar cambios</button>
+                                    </div>
+                                </article>
+                            </form>
+                        </div>
+                    </c:if>
+
+                    <!-- TAB SOLO PARA PERFIL AJENO -->
+                    <c:if test="${not esMiPerfil}">
+                        <div id="tab-biblioteca" class="profile-tab-content" style="display: none;">
+                            <article class="card perfil-section">
+                                <h2>Biblioteca de <c:out value="${usuarioMostrado.nombre}"/></h2>
+                                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                                    <c:if test="${empty todosLosLibros}">
+                                        <div class="col-12 text-center py-5">
+                                            <p class="text-muted">Este usuario aún no tiene libros en su biblioteca.</p>
+                                        </div>
+                                    </c:if>
+                                    <c:forEach var="libro" items="${todosLosLibros}">
+                                        <div class="col">
+                                            <div class="card h-100 bg-dark border-secondary text-white p-2 text-center" style="border: 1px solid rgba(255,255,255,0.05) !important;">
+                                                <div style="height: 140px; background: #222; border-radius: 8px; overflow: hidden; margin-bottom: 8px;">
+                                                    <img src="${not empty libro.portadaUrl ? libro.portadaUrl : 'https://via.placeholder.com/150x225'}" 
+                                                         class="w-100 h-100" 
+                                                         style="object-fit: cover;">
+                                                </div>
+                                                <h6 class="card-title text-truncate small mb-1"><c:out value="${libro.titulo}"/></h6>
+                                                <p class="card-text text-muted text-truncate" style="font-size: 0.7rem;"><c:out value="${libro.autor}"/></p>
+                                                <span class="badge-cozy small" style="font-size: 0.6rem; opacity: 0.8;">
+                                                    ${libro.estado == 'LEIDO' ? '✅ Leído' : (libro.estado == 'LEYENDO' ? '📖 Leyendo' : '⏳ Pendiente')}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                            </article>
+                        </div>
+                    </c:if>
                 </section>
             </div>
         </div>
