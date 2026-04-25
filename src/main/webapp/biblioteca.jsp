@@ -39,14 +39,9 @@
                     <div class="input-group">
                         <input type="text" id="inputBusqueda" 
                                class="form-control bg-white text-dark border-0 fw-bold" 
-                               placeholder="Título del libro..." 
+                               placeholder="Escribe el título de un libro..." 
                                oninput="debounceSearch()">
-                        <select id="selectEstadoVisual" class="form-select bg-dark text-white border-0 small" style="max-width: 140px; font-size: 0.85rem;">
-                            <option value="PENDIENTE">⏳ Pendiente</option>
-                            <option value="LEYENDO">📖 Leyendo</option>
-                            <option value="LEIDO">✅ Leído</option>
-                        </select>
-                        <button class="btn btn-gold px-3 border-0" type="button" onclick="realizarBusqueda()" title="Buscar nuevos libros">
+                        <button class="btn btn-gold px-4 border-0" type="button" onclick="realizarBusqueda()" title="Buscar nuevos libros">
                             <i class="bi bi-search fw-bold"></i>
                         </button>
                     </div>
@@ -151,6 +146,48 @@
         <input type="hidden" name="paginas" id="hPaginas">
     </form>
 
+    <!-- Modal Agregar Libro (Selección de Estado) -->
+    <div class="modal fade" id="modalAgregarLibro" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border-secondary text-white">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Añadir a mi biblioteca</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="addModalPortada" src="" class="rounded shadow mb-3" style="height: 160px; object-fit: cover;">
+                    <h5 id="addModalTitulo" class="fw-bold mb-1 text-gold"></h5>
+                    <p id="addModalAutor" class="text-muted mb-4 small"></p>
+                    
+                    <p class="mb-3 fw-bold">¿Cómo quieres clasificar este libro?</p>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-light p-3 d-flex align-items-center text-start" onclick="confirmarAgregado('PENDIENTE')">
+                            <span class="fs-3 me-3">⏳</span>
+                            <div>
+                                <div class="fw-bold">Por leer</div>
+                                <div class="small opacity-75">Añadir a la lista de pendientes</div>
+                            </div>
+                        </button>
+                        <button type="button" class="btn btn-outline-warning p-3 d-flex align-items-center text-start text-white" onclick="confirmarAgregado('LEYENDO')">
+                            <span class="fs-3 me-3">📖</span>
+                            <div>
+                                <div class="fw-bold">Leyendo</div>
+                                <div class="small opacity-75">Empezar a leerlo ahora</div>
+                            </div>
+                        </button>
+                        <button type="button" class="btn btn-outline-success p-3 d-flex align-items-center text-start text-white" onclick="confirmarAgregado('LEIDO')">
+                            <span class="fs-3 me-3">✅</span>
+                            <div>
+                                <div class="fw-bold">Leído</div>
+                                <div class="small opacity-75">Marcar como terminado</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Editar -->
     <div class="modal fade" id="modalEditarLibro" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -199,19 +236,20 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     var timeoutBusqueda = null;
+    var currentBookData = {};
 
     function debounceSearch() {
         clearTimeout(timeoutBusqueda);
         var texto = document.getElementById('inputBusqueda').value.toLowerCase();
         
-        // 1. Filtrado local (solo oculta lo que ya tienes en pantalla)
+        // 1. Filtrado local
         var cards = document.querySelectorAll('.book-item-container');
         cards.forEach(function(c) {
             var t = c.querySelector('.card-title').innerText.toLowerCase();
             c.style.display = t.indexOf(texto) > -1 ? 'block' : 'none';
         });
 
-        // 2. Si escribes más de 3 letras, buscamos en Google después de un breve delay
+        // 2. Búsqueda remota
         if (texto.length >= 3) {
             timeoutBusqueda = setTimeout(realizarBusqueda, 700);
         } else {
@@ -226,21 +264,15 @@
         var res = document.getElementById('resultadosBusqueda');
         res.innerHTML = '<div class="col-12 text-center text-muted py-3"><div class="spinner-border spinner-border-sm text-gold me-2"></div>Buscando en Google Books...</div>';
 
-        // Llamar a nuestro propio servidor (puente) para ocultar la API Key y evitar bloqueos
         fetch('api/buscar-libro?q=' + encodeURIComponent(texto))
             .then(function(r) { 
-                if (!r.ok) {
-                    if (r.status === 429) throw new Error("Límite de búsquedas excedido. Esperá un momento.");
-                    throw new Error("Error en el servidor: " + r.status);
-                }
+                if (!r.ok) throw new Error("Error en el servidor");
                 return r.json(); 
             })
             .then(function(data) {
                 res.innerHTML = "";
-                console.log("Datos recibidos:", data);
-
                 if (!data.items || data.items.length === 0) {
-                    res.innerHTML = '<div class="col-12 text-center text-muted small py-2">No se encontraron libros nuevos con ese nombre.</div>';
+                    res.innerHTML = '<div class="col-12 text-center text-muted small py-2">No se encontraron libros nuevos.</div>';
                     return;
                 }
                 
@@ -248,14 +280,7 @@
                     var info = item.volumeInfo;
                     var title = info.title || "Sin título";
                     var author = info.authors ? info.authors[0] : "Anónimo";
-                    
-                    var img = "https://via.placeholder.com/128x192?text=No+Cover";
-                    if (info.imageLinks) {
-                        img = info.imageLinks.thumbnail || info.imageLinks.smallThumbnail;
-                        // Forzar HTTPS en las portadas de Google
-                        img = img.replace(/^http:\/\//i, 'https://');
-                    }
-
+                    var img = info.imageLinks ? (info.imageLinks.thumbnail || info.imageLinks.smallThumbnail).replace(/^http:\/\//i, 'https://') : "https://via.placeholder.com/128x192?text=No+Cover";
                     var pages = info.pageCount || 0;
 
                     var col = document.createElement('div');
@@ -264,33 +289,44 @@
                         <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; border: 1px solid rgba(212,175,55,0.2) !important;">
                             <div class="row g-0 h-100">
                                 <div class="col-4" style="background: #222;">
-                                    <img src="\${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 85px;" referrerpolicy="no-referrer" onerror="this.src='https://via.placeholder.com/128x192?text=Error'">
+                                    <img src="\${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 85px;" referrerpolicy="no-referrer">
                                 </div>
                                 <div class="col-8 p-2">
                                     <div class="fw-bold text-truncate small" style="color: var(--accent-gold); font-size: 0.75rem;">\${title}</div>
                                     <div class="text-muted text-truncate" style="font-size: 0.65rem;">\${author}</div>
-                                    <div class="mt-1"><span class="badge bg-gold text-dark" style="font-size: 0.55rem;">Añadir</span></div>
+                                    <div class="mt-1"><span class="badge bg-gold text-dark" style="font-size: 0.55rem;">+ Añadir</span></div>
                                 </div>
                             </div>
                         </div>`;
                     
                     col.querySelector('.card').onclick = function() {
-                        if (confirm('¿Añadir "' + title + '"?')) {
-                            document.getElementById('hTitulo').value = title;
-                            document.getElementById('hAutor').value = author;
-                            document.getElementById('hPortada').value = img;
-                            document.getElementById('hPaginas').value = pages;
-                            document.getElementById('hEstado').value = document.getElementById('selectEstadoVisual').value;
-                            document.getElementById('formGuardarLibro').submit();
-                        }
+                        abrirModalAgregar(title, author, img, pages);
                     };
                     res.appendChild(col);
                 });
             })
             .catch(function(error) {
-                console.error("Error en búsqueda:", error);
-                res.innerHTML = '<div class="col-12 text-center text-danger small py-2">No se pudo conectar con Google Books. Reintentá en unos segundos.</div>';
+                res.innerHTML = '<div class="col-12 text-center text-danger small py-2">Error al buscar.</div>';
             });
+    }
+
+    function abrirModalAgregar(titulo, autor, portada, paginas) {
+        currentBookData = { titulo: titulo, autor: autor, portada: portada, paginas: paginas };
+        document.getElementById('addModalTitulo').innerText = titulo;
+        document.getElementById('addModalAutor').innerText = autor;
+        document.getElementById('addModalPortada').src = portada;
+        
+        var modal = new bootstrap.Modal(document.getElementById('modalAgregarLibro'));
+        modal.show();
+    }
+
+    function confirmarAgregado(estado) {
+        document.getElementById('hTitulo').value = currentBookData.titulo;
+        document.getElementById('hAutor').value = currentBookData.autor;
+        document.getElementById('hPortada').value = currentBookData.portada;
+        document.getElementById('hPaginas').value = currentBookData.paginas;
+        document.getElementById('hEstado').value = estado;
+        document.getElementById('formGuardarLibro').submit();
     }
 
     function abrirModalEdicion(id, titulo, estado, estrellas, resena) {
