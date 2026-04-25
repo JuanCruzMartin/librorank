@@ -19,7 +19,7 @@
     </div>
 </div>
 
-<footer class="mt-5 py-4 border-top border-secondary" style="background: rgba(0,0,0,0.3);">
+<footer class="site-footer py-4 border-top border-secondary" style="background: rgba(0,0,0,0.3);">
     <div class="container text-center">
         <p class="mb-0 small" style="color: var(--text-muted); letter-spacing: 1px; font-weight: 500;">
             &copy; 2026 <span class="text-gold fw-bold">LibroRank</span>. Todos los derechos reservados.<br>
