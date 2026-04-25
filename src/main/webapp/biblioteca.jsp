@@ -119,7 +119,27 @@
                     </div>
                     <div class="card-body p-2 text-center">
                         <h6 class="card-title text-truncate mb-1"><c:out value="${libro.titulo}"/></h6>
-                        <p class="card-text small text-muted text-truncate mb-3"><c:out value="${libro.autor}"/></p>
+                        <p class="card-text small text-muted text-truncate mb-2"><c:out value="${libro.autor}"/></p>
+                        
+                        <div class="mb-3">
+                            <c:choose>
+                                <c:when test="${libro.estado == 'LEIDO'}">
+                                    <span class="badge-cozy bg-success-subtle text-success border border-success-subtle">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Leído
+                                    </span>
+                                </c:when>
+                                <c:when test="${libro.estado == 'LEYENDO'}">
+                                    <span class="badge-cozy bg-warning-subtle text-warning border border-warning-subtle">
+                                        <i class="bi bi-book-half me-1"></i>Leyendo
+                                    </span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="badge-cozy bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                        <i class="bi bi-clock-history me-1"></i>Pendiente
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
                         
                         <div class="d-grid gap-2">
                             <a href="diario?idLibro=${libro.id}" class="btn btn-gold btn-sm">
