@@ -100,7 +100,7 @@ public class PerfilServlet extends HttpServlet {
         request.setAttribute("ultimasLecturas", ultimasLecturas);
 
         // Cargar todos los libros para la pestaña de biblioteca en el perfil
-        List<Libro> todosLosLibros = libroDAO.obtenerLibrosPorUsuario(usuarioMostrado.getId());
+        List<Libro> todosLosLibros = libroDAO.buscarPorUsuario(usuarioMostrado.getId());
         request.setAttribute("todosLosLibros", todosLosLibros);
 
         // Achievements
