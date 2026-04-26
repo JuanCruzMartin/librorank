@@ -38,9 +38,10 @@
                     </label>
                     <div class="input-group">
                         <input type="text" id="inputBusqueda" 
-                               class="form-control bg-white text-dark border-0 fw-bold" 
+                               class="form-control bg-dark text-white border-secondary fw-bold" 
                                placeholder="Escribe el título de un libro..." 
-                               oninput="debounceSearch()">
+                               oninput="debounceSearch()"
+                               style="border: 1px solid rgba(212, 175, 55, 0.3) !important;">
                         <button class="btn btn-gold px-4 border-0" type="button" onclick="realizarBusqueda()" title="Buscar nuevos libros">
                             <i class="bi bi-search fw-bold"></i>
                         </button>
