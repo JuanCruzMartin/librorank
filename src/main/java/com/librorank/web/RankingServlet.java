@@ -22,15 +22,31 @@ public class RankingServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(RankingServlet.class);
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 
+    // Cache para el ranking
+    private static List<Usuario> cacheRanking = null;
+    private static long ultimaActualizacion = 0;
+    private static final long TIEMPO_CACHE = 5 * 60 * 1000; // 5 minutos
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        int limite = 50;
-        List<Usuario> ranking = usuarioDAO.obtenerRankingLectores(limite);
-        request.setAttribute("ranking", ranking);
+        long ahora = System.currentTimeMillis();
+        List<Usuario> ranking;
+
+        synchronized (this) {
+            if (cacheRanking == null || (ahora - ultimaActualizacion) > TIEMPO_CACHE) {
+                ranking = usuarioDAO.obtenerRankingLectores(50);
+                cacheRanking = ranking;
+                ultimaActualizacion = ahora;
+                logger.info("Ranking actualizado desde la base de datos (Cache expirada o nula).");
+            } else {
+                ranking = cacheRanking;
+                logger.debug("Ranking entregado desde la caché.");
+            }
+        }
         
-        logger.debug("Ranking cargado con {} usuarios", ranking.size());
+        request.setAttribute("ranking", ranking);
         request.getRequestDispatcher("/ranking.jsp").forward(request, response);
     }
 }
