@@ -104,8 +104,14 @@
 
     <main class="container py-5">
         <c:if test="${not empty mensajeOk}">
-            <div class="alert alert-success bg-dark text-success border-success text-center mb-5 py-3 rounded-4">
+            <div class="alert alert-success bg-dark text-success border-success text-center mb-5 py-3 rounded-4 animate__animated animate__fadeIn">
                 <i class="bi bi-check-circle-fill me-2"></i> ${mensajeOk}
+            </div>
+        </c:if>
+
+        <c:if test="${not empty mensajeError}">
+            <div class="alert alert-danger bg-dark text-danger border-danger text-center mb-5 py-3 rounded-4 animate__animated animate__shakeX">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> ${mensajeError}
             </div>
         </c:if>
 
@@ -115,7 +121,7 @@
                     <div class="text-center py-5">
                         <i class="bi bi-feather fs-1 text-dark opacity-25 mb-3"></i>
                         <p class="text-dark fw-bold fs-4" style="color: #1a1a1a !important;">"Érase una vez..."</p>
-                        <p class="small text-secondary">Nadie ha empezado la historia aún. Sé tú el primer autor.</p>
+                        <p class="small text-secondary">La crónica está esperando su primera palabra. Sé el autor del comienzo.</p>
                     </div>
                 </c:when>
                 <c:otherwise>
@@ -124,11 +130,14 @@
                             <div class="hoja-meta">
                                 <i class="bi bi-file-earmark-text me-1"></i> Hoja #${f.numeroHoja} 
                                 <span class="mx-2">—</span> 
-                                <i class="bi bi-person me-1"></i> @${f.username}
+                                <i class="bi bi-person-circle me-1"></i> @${f.username}
                             </div>
                             <div class="contenido-texto">${f.contenido}</div>
                         </div>
                     </c:forEach>
+                    <div class="text-center mt-4 opacity-50">
+                        <i class="bi bi-three-dots"></i>
+                    </div>
                 </c:otherwise>
             </c:choose>
         </div>
@@ -138,26 +147,36 @@
                 <c:choose>
                     <c:when test="${yaEscribio}">
                         <div class="ya-participaste">
-                            <i class="bi bi-stars me-2 fs-4"></i> 
-                            Ya has dejado tu marca en esta crónica. ¡Vuelve pronto para leer cómo continúa!
+                            <div class="mb-2"><i class="bi bi-stars fs-3"></i></div>
+                            <h5>¡Misión Cumplida, Escritor!</h5>
+                            <p class="mb-0 opacity-75">Ya has dejado tu huella en esta historia. Vuelve más tarde para ver cómo ha evolucionado el relato con las ideas de otros lectores.</p>
                         </div>
                     </c:when>
                     <c:otherwise>
                         <div class="form-nueva-hoja">
                             <div class="d-flex align-items-center mb-4">
-                                <div class="bg-gold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; color: black;">
-                                    <i class="bi bi-pen-fill"></i>
+                                <div class="bg-gold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; color: black; box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);">
+                                    <i class="bi bi-pen-fill fs-5"></i>
                                 </div>
-                                <h3 class="text-gold font-title mb-0">Escribir la Siguiente Hoja</h3>
+                                <div>
+                                    <h3 class="text-gold font-title mb-0">Escribir la Siguiente Hoja</h3>
+                                    <p class="text-muted small mb-0">Tu aporte debe continuar el sentido de la historia anterior.</p>
+                                </div>
                             </div>
-                            <form action="cuento" method="post">
-                                <div class="mb-4">
+                            <form action="cuento" method="post" id="formCuento">
+                                <div class="mb-4 position-relative">
                                     <label class="form-label text-gold small fw-bold mb-2" style="letter-spacing: 1px;">TU CONTRIBUCIÓN</label>
-                                    <textarea name="contenido" rows="8" class="form-control" placeholder="Imagina, crea y continúa el relato..." required style="border-radius: 15px; resize: none;"></textarea>
+                                    <textarea name="contenido" id="contenidoCuento" rows="8" class="form-control" 
+                                              placeholder="Escribe aquí el siguiente párrafo de esta gran aventura..." 
+                                              required maxlength="1000"
+                                              style="border-radius: 15px; resize: none; padding: 20px;"></textarea>
+                                    <div class="text-end mt-2">
+                                        <small id="charCounter" class="text-muted">0 / 1000 caracteres</small>
+                                    </div>
                                 </div>
                                 <div class="text-center">
-                                    <button type="submit" class="btn btn-gold px-5 py-3 fw-bold">
-                                        <i class="bi bi-send-fill me-2"></i>Publicar mi Hoja y ganar 30 🪙
+                                    <button type="submit" class="btn btn-gold px-5 py-3 fw-bold rounded-pill shadow-lg">
+                                        <i class="bi bi-send-fill me-2"></i>Publicar Hoja y ganar 30 🪙
                                     </button>
                                 </div>
                             </form>
@@ -169,6 +188,23 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const textarea = document.getElementById('contenidoCuento');
+        const counter = document.getElementById('charCounter');
+        
+        if (textarea) {
+            textarea.addEventListener('input', () => {
+                const length = textarea.value.length;
+                counter.textContent = `${length} / 1000 caracteres`;
+                
+                if (length > 900) {
+                    counter.classList.replace('text-muted', 'text-warning');
+                } else {
+                    counter.classList.replace('text-warning', 'text-muted');
+                }
+            });
+        }
+    </script>
     <jsp:include page="includes/footer.jsp" />
 </body>
 </html>

@@ -742,8 +742,11 @@ header.site-header {
    ========================================= */
 .auth-page {
     display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
     min-height: 100vh;
     background-color: var(--bg-body);
+    overflow-x: hidden;
 }
 
 .auth-visual {

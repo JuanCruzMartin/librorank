@@ -38,18 +38,37 @@ public class CuentoServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("usuarioLogueado") == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
         Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-
         String contenido = request.getParameter("contenido");
-        int historiaId = cuentoDAO.obtenerOIdUnicaHistoria();
 
-        if (!cuentoDAO.haEscritoYa(historiaId, usuario.getId())) {
-            if (cuentoDAO.guardarHoja(historiaId, usuario.getId(), contenido)) {
-                // Premio por participar
-                libroDAO.otorgarMonedasPorBingo(usuario.getId(), 30); // Usamos el de bingo para dar 30 monedas
-                actividadDAO.registrarActividad(usuario.getId(), "DIARIO_LOG", null, "Escribió una hoja en el Cuento Comunitario.");
-                request.setAttribute("mensajeOk", "¡Tu hoja ha sido añadida a la historia! Ganaste 30 🪙");
+        if (contenido == null || contenido.trim().isEmpty()) {
+            request.setAttribute("mensajeError", "El contenido de tu hoja no puede estar vacío.");
+            doGet(request, response);
+            return;
+        }
+
+        try {
+            int historiaId = cuentoDAO.obtenerOIdUnicaHistoria();
+
+            if (cuentoDAO.haEscritoYa(historiaId, usuario.getId())) {
+                request.setAttribute("mensajeError", "Ya has participado en esta crónica. ¡Espera a que otros lectores continúen!");
+            } else {
+                if (cuentoDAO.guardarHoja(historiaId, usuario.getId(), contenido.trim())) {
+                    // Premio por participar
+                    libroDAO.otorgarMonedasPorBingo(usuario.getId(), 30); 
+                    actividadDAO.registrarActividad(usuario.getId(), "DIARIO_LOG", null, "Escribió una hoja en el Cuento Comunitario.");
+                    request.setAttribute("mensajeOk", "¡Tu hoja ha sido añadida a la historia! Ganaste 30 🪙");
+                } else {
+                    request.setAttribute("mensajeError", "Hubo un problema técnico al guardar tu hoja. Por favor, inténtalo de nuevo.");
+                }
             }
+        } catch (Exception e) {
+            request.setAttribute("mensajeError", "Ocurrió un error inesperado: " + e.getMessage());
         }
 
         doGet(request, response);

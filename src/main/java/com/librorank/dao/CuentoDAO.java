@@ -74,14 +74,17 @@ public class CuentoDAO {
     }
 
     public int obtenerOIdUnicaHistoria() {
-        // Para simplificar, asumimos que siempre hay una historia activa llamada "El Origen"
-        String sql = "SELECT id FROM historias_comunitarias LIMIT 1";
-        try (Connection conn = DatabaseConfig.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) return rs.getInt(1);
+        String sqlSelect = "SELECT id FROM historias_comunitarias LIMIT 1";
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            // Intentar obtener la historia existente
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(sqlSelect)) {
+                if (rs.next()) return rs.getInt(1);
+            } catch (SQLException e) {
+                logger.warn("La tabla historias_comunitarias podría no existir, intentando continuar...");
+            }
             
-            // Si no existe, la creamos
+            // Si no existe o la tabla no está, intentamos crear una (esto fallará si la tabla no existe, pero es el comportamiento esperado)
             String insert = "INSERT INTO historias_comunitarias (titulo) VALUES ('La Gran Crónica de LibroRank')";
             try (PreparedStatement st = conn.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS)) {
                 st.executeUpdate();
@@ -89,7 +92,9 @@ public class CuentoDAO {
                     if (rsKey.next()) return rsKey.getInt(1);
                 }
             }
-        } catch (SQLException e) { }
-        return 1;
+        } catch (SQLException e) {
+            logger.error("Error crítico al obtener/crear historia comunitaria: {}", e.getMessage());
+        }
+        return 1; // ID por defecto si todo lo anterior falla
     }
 }
