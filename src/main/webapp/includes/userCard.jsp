@@ -29,9 +29,9 @@
     
     <div style="flex-grow: 1; overflow: hidden;">
         <h4 class="mb-0 h6 fw-bold">
-            <a href="perfil?id=${user.id}" class="text-white text-decoration-none hover-gold">${user.nombre}</a>
+            <a href="perfil?id=${user.id}" class="text-gold text-decoration-none" style="font-size: 0.95rem;">${user.nombre}</a>
         </h4>
-        <p class="muted small mb-0">@${user.username} · <span class="text-gold">${user.tituloLector}</span></p>
+        <p class="mb-0" style="color: rgba(255,255,255,0.7); font-size: 0.8rem;">@${user.username} · <span class="text-gold opacity-75">${user.tituloLector}</span></p>
         
         <c:if test="${user.librosEnComun > 0}">
             <button type="button" class="btn btn--sm btn--ghost p-0 mt-1" style="color: var(--primary); font-size: 0.75rem;" onclick="toggleAfinidad('afin-${context}-${user.id}')">
