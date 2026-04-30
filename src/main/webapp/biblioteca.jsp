@@ -113,7 +113,7 @@
             <div class="col book-item-container">
                 <div class="card h-100 bg-dark border-secondary text-white p-2">
                     <div class="position-relative">
-                        <img src="${not empty libro.portadaUrl ? libro.portadaUrl : 'https://via.placeholder.com/150x225'}" class="card-img-top rounded shadow-sm" style="height: 200px; object-fit: cover;">
+                        <img src="${not empty libro.portadaUrl ? libro.portadaUrl : 'https://via.placeholder.com/150x225'}" class="card-img-top rounded shadow-sm" style="height: 200px; object-fit: cover;" loading="lazy">
                         <div class="position-absolute top-0 end-0 p-1">
                             <a href="biblioteca?eliminar=${libro.id}" class="btn btn-danger btn-sm p-1" onclick="return confirm('¿Borrar?')"><i class="bi bi-trash"></i></a>
                         </div>
