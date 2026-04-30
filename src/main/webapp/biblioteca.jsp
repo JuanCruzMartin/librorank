@@ -305,17 +305,25 @@
                     var pages = info.pageCount || 0;
 
                     var col = document.createElement('div');
-                    col.className = 'col-md-3 col-6 mb-3';
+                    col.className = 'col-6 col-md-3 mb-4';
                     col.innerHTML = `
-                        <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; border: 1px solid rgba(212,175,55,0.2) !important; min-height: 200px;">
-                            <div class="position-relative h-100 w-100">
-                                <img src="\${img}" class="h-100 w-100" style="object-fit: cover; position: absolute; top:0; left:0;" referrerpolicy="no-referrer">
-                                <div class="position-absolute bottom-0 start-0 end-0 p-2" style="background: linear-gradient(transparent, rgba(0,0,0,0.95));">
-                                    <div class="fw-bold text-truncate small" style="color: var(--accent-gold); font-size: 0.75rem;">\${title}</div>
-                                    <div class="text-white-50 text-truncate" style="font-size: 0.65rem;">\${author}</div>
+                        <div class="card h-100 bg-transparent border-0 search-result-card" style="cursor:pointer;">
+                            <div class="position-relative mb-2 shadow-lg" style="aspect-ratio: 2/3; background: #222; border-radius: 8px; overflow: hidden; border: 1px solid rgba(212,175,55,0.1);">
+                                <img src="\${img}" class="w-100 h-100" style="object-fit: contain; padding: 5px;" referrerpolicy="no-referrer">
+                                <div class="hover-overlay position-absolute inset-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.5); opacity: 0; transition: all 0.3s ease;">
+                                    <span class="badge bg-gold text-dark px-3 py-2 rounded-pill shadow">+ AÑADIR</span>
                                 </div>
                             </div>
-                        </div>`;
+                            <div class="px-1">
+                                <div class="fw-bold text-white mb-0 text-truncate-2" style="font-size: 0.85rem; line-height: 1.2; height: 2.4rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">\${title}</div>
+                                <div class="text-gold opacity-75 text-truncate" style="font-size: 0.75rem;">\${author}</div>
+                            </div>
+                        </div>
+                        <style>
+                            .search-result-card:hover .hover-overlay { opacity: 1 !important; }
+                            .search-result-card:hover img { transform: scale(1.05); transition: transform 0.3s ease; }
+                            .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+                        </style>`;
                     
                     col.querySelector('.card').onclick = function() {
                         abrirModalAgregar(title, author, img, pages);
