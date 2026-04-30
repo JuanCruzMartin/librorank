@@ -741,60 +741,38 @@ header.site-header {
    8. PÁGINAS DE ACCESO (SPLIT LAYOUT)
    ========================================= */
 .auth-page {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    min-height: 100vh !important;
-    background-color: var(--bg-body);
-    overflow-x: hidden;
-}
-
-.auth-visual {
-    flex: 1;
-    background: linear-gradient(rgba(26, 22, 20, 0.6), rgba(26, 22, 20, 0.8)), 
+    background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), 
                 url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000&auto=format&fit=crop');
     background-size: cover;
     background-position: center;
-    display: flex;
+    background-attachment: fixed;
+    display: flex !important;
     align-items: center;
-    justify-content: center;
-    padding: 4rem;
-    position: relative;
+    justify-content: flex-end; /* Lo mueve a la derecha */
+    min-height: 100vh;
+    padding: 2rem;
 }
 
-.auth-visual::after {
-    content: "";
-    position: absolute;
-    bottom: 0; left: 0; right: 0; height: 30%;
-    background: linear-gradient(transparent, var(--bg-body));
-}
-
-.auth-quote {
-    max-width: 500px;
-    z-index: 10;
-}
-
-.auth-quote h2 {
-    font-size: 3rem;
-    color: #fff;
-    margin-bottom: 1.5rem;
-    line-height: 1.1;
-}
-
-.auth-quote p {
-    font-size: 1.2rem;
-    color: var(--accent-gold);
-    font-style: italic;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+.auth-visual {
+    display: none; /* Ocultamos el bloque separado ya que ahora es el fondo */
 }
 
 .auth-content {
-    width: 500px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 4rem;
-    background-color: var(--bg-body);
+    width: 450px;
+    height: auto;
+    background: rgba(26, 22, 20, 0.85); /* Fondo oscuro semitransparente */
+    backdrop-filter: blur(15px); /* Efecto de desenfoque */
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 24px;
+    padding: 3.5rem;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    margin-right: 5%; /* Margen desde la derecha */
+}
+
+@media (max-width: 800px) {
+    .auth-page { justify-content: center; padding: 1rem; }
+    .auth-content { width: 100%; margin-right: 0; padding: 2rem; }
 }
 
 .auth-header {
