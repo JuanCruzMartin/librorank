@@ -305,17 +305,14 @@
                     var pages = info.pageCount || 0;
 
                     var col = document.createElement('div');
-                    col.className = 'col-md-4 mb-2';
+                    col.className = 'col-md-3 col-6 mb-3';
                     col.innerHTML = `
-                        <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; border: 1px solid rgba(212,175,55,0.2) !important;">
-                            <div class="row g-0 h-100">
-                                <div class="col-5" style="background: #222;">
-                                    <img src="\${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 95px;" referrerpolicy="no-referrer">
-                                </div>
-                                <div class="col-7 p-2">
+                        <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; border: 1px solid rgba(212,175,55,0.2) !important; min-height: 200px;">
+                            <div class="position-relative h-100 w-100">
+                                <img src="\${img}" class="h-100 w-100" style="object-fit: cover; position: absolute; top:0; left:0;" referrerpolicy="no-referrer">
+                                <div class="position-absolute bottom-0 start-0 end-0 p-2" style="background: linear-gradient(transparent, rgba(0,0,0,0.95));">
                                     <div class="fw-bold text-truncate small" style="color: var(--accent-gold); font-size: 0.75rem;">\${title}</div>
-                                    <div class="text-muted text-truncate" style="font-size: 0.65rem;">\${author}</div>
-                                    <div class="mt-1"><span class="badge bg-gold text-dark" style="font-size: 0.55rem;">+ Añadir</span></div>
+                                    <div class="text-white-50 text-truncate" style="font-size: 0.65rem;">\${author}</div>
                                 </div>
                             </div>
                         </div>`;
