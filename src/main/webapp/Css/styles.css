@@ -741,10 +741,10 @@ header.site-header {
    8. PÁGINAS DE ACCESO (SPLIT LAYOUT)
    ========================================= */
 .auth-page {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    min-height: 100vh;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    min-height: 100vh !important;
     background-color: var(--bg-body);
     overflow-x: hidden;
 }
