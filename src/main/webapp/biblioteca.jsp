@@ -305,17 +305,17 @@
                     var pages = info.pageCount || 0;
 
                     var col = document.createElement('div');
-                    col.className = 'col-md-4 mb-2';
+                    col.className = 'col-md-4 mb-3';
                     col.innerHTML = `
-                        <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm" style="cursor:pointer; border: 1px solid rgba(212,175,55,0.2) !important;">
+                        <div class="card bg-dark border-secondary h-100 text-white overflow-hidden shadow-sm hover-search-card" style="cursor:pointer; border: 1px solid rgba(212,175,55,0.2) !important; transition: all 0.2s ease;">
                             <div class="row g-0 h-100">
-                                <div class="col-4" style="background: #222;">
-                                    <img src="\${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 85px;" referrerpolicy="no-referrer">
+                                <div class="col-5" style="background: #222; border-right: 1px solid rgba(255,255,255,0.05);">
+                                    <img src="${img}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 120px;" referrerpolicy="no-referrer">
                                 </div>
-                                <div class="col-8 p-2">
-                                    <div class="fw-bold text-truncate small" style="color: var(--accent-gold); font-size: 0.75rem;">\${title}</div>
-                                    <div class="text-muted text-truncate" style="font-size: 0.65rem;">\${author}</div>
-                                    <div class="mt-1"><span class="badge bg-gold text-dark" style="font-size: 0.55rem;">+ Añadir</span></div>
+                                <div class="col-7 p-3 d-flex flex-column justify-content-center">
+                                    <div class="fw-bold lh-sm mb-1" style="color: var(--accent-gold); font-size: 0.85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${title}</div>
+                                    <div class="text-muted text-truncate mb-2" style="font-size: 0.75rem;">${author}</div>
+                                    <div><span class="badge bg-gold text-dark px-2 py-1" style="font-size: 0.65rem; font-weight: 800;">+ AÑADIR</span></div>
                                 </div>
                             </div>
                         </div>`;
