@@ -24,7 +24,7 @@ public class Usuario {
     // Nuevo campo agregado recientemente
     private String generosFavoritos;
 
-    private int monedas; // Monedas virtuales de la app.
+    private int puntos; // Puntos virtuales de la app.
 
     private int rachaActual;
     private java.time.LocalDate ultimaFechaLectura;
@@ -51,13 +51,13 @@ public class Usuario {
         this.avatarUrl = "";
         this.nivelId = 1;        // Por defecto todos empiezan en Nivel 1
         this.objetivoAnual = 0;
-        this.monedas = 0;
+        this.puntos = 0;
         this.rachaActual = 0;
     }
 
     // 3. Constructor COMPLETO
     // Se usa cuando traemos los datos DE la base de datos HACIA Java (ej: al hacer login o ver perfil).
-    public Usuario(int id, String nombre, String username, String email, String passwordHash, String bio, String avatarUrl, Integer nivelId, Integer objetivoAnual, int monedas, int rachaActual, java.time.LocalDate ultimaFechaLectura) {
+    public Usuario(int id, String nombre, String username, String email, String passwordHash, String bio, String avatarUrl, Integer nivelId, Integer objetivoAnual, int puntos, int rachaActual, java.time.LocalDate ultimaFechaLectura) {
         this.id = id;
         this.nombre = nombre;
         this.username = username;
@@ -67,7 +67,7 @@ public class Usuario {
         this.avatarUrl = avatarUrl;
         this.nivelId = nivelId;
         this.objetivoAnual = objetivoAnual;
-        this.monedas = monedas;
+        this.puntos = puntos;
         this.rachaActual = rachaActual;
         this.ultimaFechaLectura = ultimaFechaLectura;
     }
@@ -114,8 +114,8 @@ public class Usuario {
     public Integer getTotalLibrosLeidos() { return totalLibrosLeidos; }
     public void setTotalLibrosLeidos(Integer totalLibrosLeidos) { this.totalLibrosLeidos = totalLibrosLeidos; }
 
-    public int getMonedas() { return monedas; }
-    public void setMonedas(int monedas) { this.monedas = monedas; }
+    public int getPuntos() { return puntos; }
+    public void setPuntos(int puntos) { this.puntos = puntos; }
 
     public int getLibrosEnComun() { return librosEnComun; }
     public void setLibrosEnComun(int librosEnComun) { this.librosEnComun = librosEnComun; }

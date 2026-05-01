@@ -100,10 +100,10 @@ public class BibliotecaServlet extends HttpServlet {
                     boolean noTeniaResena = libroPrevio != null && (libroPrevio.getResena() == null || libroPrevio.getResena().isBlank());
 
                     if (esLeido && tieneResenaNueva && noTeniaResena) {
-                        libroDAO.otorgarMonedasPorResena(usuario.getId());
-                        usuario.setMonedas(usuario.getMonedas() + 15);
+                        libroDAO.otorgarPuntosPorResena(usuario.getId());
+                        usuario.setPuntos(usuario.getPuntos() + 10);
                         session.setAttribute("usuarioLogueado", usuario);
-                        request.setAttribute("mensajeOK", "¡Libro actualizado correctamente! Has ganado 15 🪙 por tu reseña.");
+                        request.setAttribute("mensajeOK", "¡Libro actualizado correctamente! Has ganado 10 pts por tu reseña.");
                     } else {
                         request.setAttribute("mensajeOK", "Libro actualizado correctamente.");
                     }
@@ -142,8 +142,8 @@ public class BibliotecaServlet extends HttpServlet {
                 actividadDAO.registrarActividad(usuario.getId(), "NUEVO_LIBRO", misLibros.get(0).getId(), titulo);
             }
             if ("LEIDO".equalsIgnoreCase(estado)) {
-                libroDAO.otorgarMonedasPorLibroLeido(usuario.getId());
-                usuario.setMonedas(usuario.getMonedas() + 10);
+                libroDAO.otorgarPuntosPorLibroLeido(usuario.getId());
+                usuario.setPuntos(usuario.getPuntos() + 20);
                 session.setAttribute("usuarioLogueado", usuario);
             }
         }

@@ -65,7 +65,11 @@ public class DiarioServlet extends HttpServlet {
             cita.setTexto(texto);
             cita.setPagina(pagina);
             if (citaDAO.guardar(cita)) {
+                libroDAO.otorgarPuntosPorCita(usuario.getId());
                 actividadDAO.registrarActividad(usuario.getId(), "DIARIO_LOG", idLibro, "Guardó una cita inspiradora.");
+                // Actualizar puntos en sesión
+                Usuario uActualizado = usuarioDAO.buscarPorId(usuario.getId());
+                session.setAttribute("usuarioLogueado", uActualizado);
             }
         } else {
             String capitulo = request.getParameter("capitulo");

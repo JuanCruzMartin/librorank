@@ -51,19 +51,23 @@ public class LibroDAO {
         }
     }
 
-    public void otorgarMonedasPorLibroLeido(int usuarioId) {
-        otorgarMonedas(usuarioId, 10, "Libro marcado como LEÍDO");
+    public void otorgarPuntosPorLibroLeido(int usuarioId) {
+        otorgarPuntos(usuarioId, 20, "Libro marcado como LEÍDO");
     }
 
-    public void otorgarMonedasPorResena(int usuarioId) {
-        otorgarMonedas(usuarioId, 15, "Reseña escrita por libro LEÍDO");
+    public void otorgarPuntosPorResena(int usuarioId) {
+        otorgarPuntos(usuarioId, 10, "Reseña escrita por libro LEÍDO");
     }
 
-    public void otorgarMonedasPorBingo(int usuarioId, int monto) {
-        otorgarMonedas(usuarioId, monto, "Progreso en Bingo Literario");
+    public void otorgarPuntosPorCita(int usuarioId) {
+        otorgarPuntos(usuarioId, 5, "Cita registrada en un libro");
     }
 
-    private void otorgarMonedas(int usuarioId, int monto, String concepto) {
+    public void otorgarPuntosPorActividad(int usuarioId, int monto, String concepto) {
+        otorgarPuntos(usuarioId, monto, concepto);
+    }
+
+    private void otorgarPuntos(int usuarioId, int monto, String concepto) {
         try (Connection conn = DatabaseConfig.getConnection()) {
             conn.setAutoCommit(false);
 
@@ -96,10 +100,10 @@ public class LibroDAO {
             }
 
             conn.commit();
-            logger.info("Otorgadas {} monedas al usuario ID {} por concepto: {}", monto, usuarioId, concepto);
+            logger.info("Otorgados {} puntos al usuario ID {} por concepto: {}", monto, usuarioId, concepto);
 
         } catch (SQLException e) {
-            logger.error("Error en transacción de otorgar monedas para usuario ID {}", usuarioId, e);
+            logger.error("Error en transacción de otorgar puntos para usuario ID {}", usuarioId, e);
         }
     }
 

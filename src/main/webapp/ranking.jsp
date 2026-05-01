@@ -62,8 +62,8 @@
                             <tr>
                                 <th>#</th>
                                 <th>Usuario</th>
+                                <th>Puntos</th>
                                 <th>Libros leídos</th>
-                                <th>Nivel Calc.</th>
                                 <th>Título</th>
                                 <th>Acciones</th>
                             </tr>
@@ -83,14 +83,15 @@
                                     </td>
 
                                     <td style="text-align: center;">
-                                        <span class="badge badge--leido">
-                                            📚 ${u.totalLibrosLeidos}
+                                        <span class="badge" style="background: rgba(212, 175, 55, 0.1); color: var(--accent-gold); border: 1px solid var(--accent-gold);">
+                                            ⭐ ${u.puntos} pts
                                         </span>
                                     </td>
 
-                                    <%-- Cálculo de nivel simple en la vista --%>
                                     <td style="text-align: center;">
-                                        Nvl. <fmt:formatNumber value="${(u.totalLibrosLeidos / 5) + 1}" maxFractionDigits="0" />
+                                        <span class="badge badge--leido">
+                                            📚 ${u.totalLibrosLeidos}
+                                        </span>
                                     </td>
 
                                     <td>

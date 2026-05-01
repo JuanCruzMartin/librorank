@@ -47,6 +47,12 @@
                     </div>
                 </li>
 
+                <li class="ms-2">
+                    <div class="badge-cozy" style="background: rgba(212, 175, 55, 0.1); color: #D4AF37; border: 1px solid rgba(212, 175, 55, 0.3);">
+                        ⭐ ${usuarioLogueado.puntos}
+                    </div>
+                </li>
+
                 <li>
                     <a href="perfil" class="btn-gold btn-sm py-1 px-3">
                         👤 Perfil

@@ -95,7 +95,7 @@
                 <div class="col-lg-5 text-lg-end">
                     <div class="d-inline-flex align-items-center p-3 rounded-pill" style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.2);">
                         <i class="bi bi-lightning-charge text-gold me-2"></i>
-                        <span class="small text-muted">Gana <strong>30 🪙</strong> por cada hoja publicada</span>
+                        <span class="small text-muted">Gana <strong>50 pts ⭐</strong> por cada hoja publicada</span>
                     </div>
                 </div>
             </div>
@@ -176,7 +176,7 @@
                                 </div>
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-gold px-5 py-3 fw-bold rounded-pill shadow-lg">
-                                        <i class="bi bi-send-fill me-2"></i>Publicar Hoja y ganar 30 🪙
+                                        <i class="bi bi-send-fill me-2"></i>Publicar Hoja y ganar 50 pts ⭐
                                     </button>
                                 </div>
                             </form>

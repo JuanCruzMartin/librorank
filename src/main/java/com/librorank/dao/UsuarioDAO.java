@@ -48,7 +48,7 @@ public class UsuarioDAO {
      */
     public Usuario buscarPorEmailOUsername(String identificador) {
         String sql = "SELECT id, nombre, username, email, password_hash, bio, avatar_url, " +
-                "       nivel_id, objetivo_anual, monedas, generos_favoritos, racha_actual, ultima_fecha_lectura " +
+                "       nivel_id, objetivo_anual, monedas AS puntos, generos_favoritos, racha_actual, ultima_fecha_lectura " +
                 "FROM usuarios " +
                 "WHERE email = ? OR username = ? " +
                 "LIMIT 1";
@@ -71,7 +71,7 @@ public class UsuarioDAO {
                     u.setAvatarUrl(rs.getString("avatar_url"));
                     u.setNivelId((Integer) rs.getObject("nivel_id"));
                     u.setObjetivoAnual((Integer) rs.getObject("objetivo_anual"));
-                    u.setMonedas(rs.getInt("monedas"));
+                    u.setPuntos(rs.getInt("puntos"));
                     u.setGenerosFavoritos(rs.getString("generos_favoritos"));
                     u.setRachaActual(rs.getInt("racha_actual"));
                     Date fecha = rs.getDate("ultima_fecha_lectura");
@@ -131,18 +131,19 @@ public class UsuarioDAO {
     }
 
     /**
-     * RANKING DE LECTORES
+     * RANKING DE LECTORES (Ordenado por Puntos)
      */
     public List<Usuario> obtenerRankingLectores(int limite) {
         List<Usuario> ranking = new ArrayList<>();
         String sql = "SELECT u.id, u.nombre, u.username, u.email, u.bio, u.avatar_url, u.objetivo_anual, " +
+                "       u.monedas AS puntos, " +
                 "       COUNT(l.id) AS total_leidos " +
                 "FROM usuarios u " +
                 "LEFT JOIN libros_usuario l " +
                 "  ON u.id = l.usuario_id " +
                 " AND l.estado = 'LEIDO' " +
-                "GROUP BY u.id, u.nombre, u.username, u.email, u.bio, u.avatar_url, u.objetivo_anual " +
-                "ORDER BY total_leidos DESC, u.nombre ASC " +
+                "GROUP BY u.id, u.nombre, u.username, u.email, u.bio, u.avatar_url, u.objetivo_anual, u.monedas " +
+                "ORDER BY puntos DESC, total_leidos DESC, u.nombre ASC " +
                 "LIMIT ?";
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -161,6 +162,7 @@ public class UsuarioDAO {
                     u.setAvatarUrl(rs.getString("avatar_url"));
                     u.setObjetivoAnual((Integer) rs.getObject("objetivo_anual"));
                     u.setTotalLibrosLeidos(rs.getInt("total_leidos"));
+                    u.setPuntos(rs.getInt("puntos"));
                     ranking.add(u);
                 }
             }
@@ -236,7 +238,7 @@ public class UsuarioDAO {
      * BUSCAR POR ID
      */
     public Usuario buscarPorId(int id) {
-        String sql = "SELECT id,nombre,username,email,bio,avatar_url,monedas,nivel_id,objetivo_anual,generos_favoritos " +
+        String sql = "SELECT id,nombre,username,email,bio,avatar_url,monedas AS puntos,nivel_id,objetivo_anual,generos_favoritos " +
                 "FROM usuarios WHERE id= ?";
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -253,7 +255,7 @@ public class UsuarioDAO {
                     u.setEmail(rs.getString("email"));
                     u.setBio(rs.getString("bio"));
                     u.setAvatarUrl(rs.getString("avatar_url"));
-                    u.setMonedas(rs.getInt("monedas"));
+                    u.setPuntos(rs.getInt("puntos"));
                     u.setGenerosFavoritos(rs.getString("generos_favoritos"));
                     u.setNivelId((Integer) rs.getObject("nivel_id"));
                     u.setObjetivoAnual((Integer) rs.getObject("objetivo_anual"));

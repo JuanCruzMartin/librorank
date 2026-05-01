@@ -60,9 +60,14 @@ public class CuentoServlet extends HttpServlet {
             } else {
                 if (cuentoDAO.guardarHoja(historiaId, usuario.getId(), contenido.trim())) {
                     // Premio por participar
-                    libroDAO.otorgarMonedasPorBingo(usuario.getId(), 30); 
+                    libroDAO.otorgarPuntosPorActividad(usuario.getId(), 50, "Participación en Cuento Comunitario"); 
                     actividadDAO.registrarActividad(usuario.getId(), "DIARIO_LOG", null, "Escribió una hoja en el Cuento Comunitario.");
-                    request.setAttribute("mensajeOk", "¡Tu hoja ha sido añadida a la historia! Ganaste 30 🪙");
+                    
+                    // Actualizar usuario en sesión para ver puntos nuevos
+                    usuario.setPuntos(usuario.getPuntos() + 50);
+                    session.setAttribute("usuarioLogueado", usuario);
+                    
+                    request.setAttribute("mensajeOk", "¡Tu hoja ha sido añadida a la historia! Ganaste 50 pts ⭐");
                 } else {
                     request.setAttribute("mensajeError", "Hubo un problema técnico al guardar tu hoja. Por favor, inténtalo de nuevo.");
                 }

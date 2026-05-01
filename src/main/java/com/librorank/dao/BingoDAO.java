@@ -57,7 +57,7 @@ public class BingoDAO {
             
             boolean ok = stmt.executeUpdate() > 0;
             if (ok) {
-                otorgarPremio(usuarioId, 10, "Casilla de Bingo completada");
+                otorgarPuntos(usuarioId, 10, "Casilla de Bingo completada");
                 verificarYPremiarLineas(usuarioId);
             }
             return ok;
@@ -70,8 +70,12 @@ public class BingoDAO {
     private void verificarYPremiarLineas(int usuarioId) {
         List<BingoCasilla> bingo = obtenerBingo(usuarioId);
         boolean[] c = new boolean[25];
+        int completadas = 0;
         for (BingoCasilla casilla : bingo) {
-            c[casilla.getPosicion()] = casilla.isCompletado();
+            if (casilla.isCompletado()) {
+                c[casilla.getPosicion()] = true;
+                completadas++;
+            }
         }
 
         int lineasNuevas = 0;
@@ -87,21 +91,23 @@ public class BingoDAO {
         if (c[0] && c[6] && c[12] && c[18] && c[24]) lineasNuevas++;
         if (c[4] && c[8] && c[12] && c[16] && c[20]) lineasNuevas++;
 
-        if (lineasNuevas > 0) {
-            otorgarPremio(usuarioId, 50, "¡Bingo!");
+        if (completadas == 25) {
+            otorgarPuntos(usuarioId, 100, "¡BINGO COMPLETO!");
             logroDAO.desbloquearLogro(usuarioId, "BINGO_MASTER");
+        } else if (lineasNuevas > 0) {
+            otorgarPuntos(usuarioId, 30, "Línea de Bingo");
         }
     }
 
-    private void otorgarPremio(int usuarioId, int monedas, String motivo) {
+    private void otorgarPuntos(int usuarioId, int puntos, String motivo) {
         String sql = "UPDATE usuarios SET monedas = monedas + ? WHERE id = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, monedas);
+            stmt.setInt(1, puntos);
             stmt.setInt(2, usuarioId);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            logger.error("Error al otorgar monedas", e);
+            logger.error("Error al otorgar puntos", e);
         }
     }
 }

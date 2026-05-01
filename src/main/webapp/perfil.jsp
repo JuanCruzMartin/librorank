@@ -75,8 +75,10 @@
                             <span class="badge badge--level">${tituloNivel}</span>
 
                             <p style="color: #fff; margin-bottom: 5px;">
-                                Nivel <strong>${nivel}</strong> · Total leídos:
-                                <strong>${leidosTotal}</strong>
+                                Nivel <strong>${nivel}</strong> · <strong>${usuarioMostrado.puntos} ⭐</strong>
+                            </p>
+                            <p style="color: #fff; margin-bottom: 5px;">
+                                Total leídos: <strong>${leidosTotal}</strong>
                             </p>
                             <c:if test="${not empty usuarioMostrado.bio}">
                                 <p class="user-bio small" style="margin-top: 10px; font-style: italic; color: var(--text-muted);">
