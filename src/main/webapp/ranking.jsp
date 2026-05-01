@@ -101,11 +101,20 @@
 
                                     <td>
                                         <c:if test="${usuarioLogueado != null && u.id != usuarioLogueado.id}">
-                                            <form action="amigos" method="post" style="display:inline;">
-                                                <input type="hidden" name="action" value="agregar">
-                                                <input type="hidden" name="amigoId" value="${u.id}">
-                                                <button type="submit" class="btn btn--sm btn--brand" title="Agregar Amigo">👤+</button>
-                                            </form>
+                                            <c:choose>
+                                                <c:when test="${idsAmigos.contains(u.id)}">
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                        <i class="bi bi-person-check-fill"></i> Amigo
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <form action="amigos" method="post" style="display:inline;">
+                                                        <input type="hidden" name="action" value="agregar">
+                                                        <input type="hidden" name="amigoId" value="${u.id}">
+                                                        <button type="submit" class="btn btn--sm btn--brand" title="Agregar Amigo">👤+</button>
+                                                    </form>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </c:if>
                                     </td>
                                 </tr>

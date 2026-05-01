@@ -43,6 +43,23 @@ public class AmigoDAO {
         }
     }
 
+    public List<Integer> obtenerIdsAmigos(int usuarioId) {
+        List<Integer> ids = new ArrayList<>();
+        String sql = "SELECT amigo_id FROM amigos WHERE usuario_id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ids.add(rs.getInt("amigo_id"));
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error al obtener IDs de amigos para usuario {}", usuarioId, e);
+        }
+        return ids;
+    }
+
     public List<Usuario> obtenerAmigos(int usuarioId) {
         List<Usuario> amigos = new ArrayList<>();
         String sql = "SELECT u.id, u.nombre, u.username, u.avatar_url " +

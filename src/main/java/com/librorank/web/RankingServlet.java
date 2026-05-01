@@ -21,6 +21,7 @@ public class RankingServlet extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(RankingServlet.class);
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private final com.librorank.dao.AmigoDAO amigoDAO = new com.librorank.dao.AmigoDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -28,8 +29,14 @@ public class RankingServlet extends HttpServlet {
 
         int limite = 50;
         List<Usuario> ranking = usuarioDAO.obtenerRankingLectores(limite);
-        request.setAttribute("ranking", ranking);
+
+        Usuario usuarioLogueado = (Usuario) request.getSession().getAttribute("usuarioLogueado");
+        if (usuarioLogueado != null) {
+            List<Integer> idsAmigos = amigoDAO.obtenerIdsAmigos(usuarioLogueado.getId());
+            request.setAttribute("idsAmigos", idsAmigos);
+        }
         
+        request.setAttribute("ranking", ranking);
         logger.debug("Ranking cargado con {} usuarios", ranking.size());
         request.getRequestDispatcher("/ranking.jsp").forward(request, response);
     }
