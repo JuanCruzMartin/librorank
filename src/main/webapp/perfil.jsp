@@ -117,7 +117,6 @@
                     <div class="inventory-tabs" style="margin-bottom: 2rem;">
                         <button class="tab-btn active" id="btn-resumen" onclick="switchProfileTab('resumen', this)">✨ Resumen</button>
                         <c:if test="${esMiPerfil}">
-                            <button class="tab-btn" id="btn-amigos" onclick="switchProfileTab('amigos', this)">👥 Amigos</button>
                             <button class="tab-btn" id="btn-config" onclick="switchProfileTab('config', this)">⚙️ Editar Cuenta</button>
                         </c:if>
                         <c:if test="${not esMiPerfil}">
@@ -180,33 +179,6 @@
 
                     <!-- TABS SOLO PARA MI PERFIL -->
                     <c:if test="${esMiPerfil}">
-                        <div id="tab-amigos" class="profile-tab-content" style="display: none;">
-                            <article class="card perfil-section">
-                                <h2>Buscar nuevos amigos</h2>
-                                <form action="amigos" method="get" style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
-                                    <input type="text" name="q" placeholder="Buscar por usuario o email..." style="flex-grow: 1;" class="form-control bg-dark text-white border-secondary" required>
-                                    <button type="submit" class="btn btn-gold">Buscar</button>
-                                </form>
-                                <c:if test="${not empty resultadosBusqueda}">
-                                    <div class="grid-lecturas">
-                                        <c:forEach var="u" items="${resultadosBusqueda}">
-                                            <c:set var="user" value="${u}" scope="request" />
-                                            <jsp:include page="/includes/userCard.jsp" />
-                                        </c:forEach>
-                                    </div>
-                                </c:if>
-                            </article>
-                            <article class="card perfil-section">
-                                <h2>Mis amigos</h2>
-                                <div class="grid-lecturas">
-                                    <c:forEach var="a" items="${amigos}">
-                                        <c:set var="user" value="${a}" scope="request" />
-                                        <jsp:include page="/includes/userCard.jsp" />
-                                    </c:forEach>
-                                </div>
-                            </article>
-                        </div>
-
                         <div id="tab-config" class="profile-tab-content" style="display: none;">
                             <form class="perfil-form" action="perfil" method="post">
                                 <article class="card perfil-section">

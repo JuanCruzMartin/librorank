@@ -37,7 +37,7 @@
                 </li>
                 <li>
                     <a href="amigos" class="${pageContext.request.requestURI.contains('amigos') ? 'text-white' : 'text-muted'} fw-500">
-                        👥 Amigos
+                        👥 Comunidad
                     </a>
                 </li>
 
