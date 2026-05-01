@@ -34,14 +34,18 @@
         <p class="mb-0" style="color: rgba(255,255,255,0.7); font-size: 0.8rem;">@${user.username} · <span class="text-gold opacity-75">${user.tituloLector}</span></p>
         
         <c:if test="${user.librosEnComun > 0}">
-            <button type="button" class="btn btn--sm btn--ghost p-0 mt-1" style="color: var(--primary); font-size: 0.75rem;" onclick="toggleAfinidad('afin-${context}-${user.id}')">
-                ✨ ${user.librosEnComun} en común
+            <button type="button" class="btn btn--sm btn--ghost p-0 mt-1 text-gold d-flex align-items-center" style="font-size: 0.75rem; border: none; background: none;" onclick="toggleAfinidad('afin-${context}-${user.id}')">
+                <i class="bi bi-stars me-1"></i> ${user.librosEnComun} libros en común
             </button>
-            <div id="afin-${context}-${user.id}" style="display: none; margin-top: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; border: 1px dashed rgba(76, 209, 55, 0.3);">
-                <p class="small mb-1" style="color: var(--primary);"><strong>Libros compartidos:</strong> ${user.listaTitulosEnComun}</p>
-                <c:if test="${not empty user.bio}">
-                    <p class="small mb-0 text-muted" style="font-style: italic;">"${user.bio}"</p>
-                </c:if>
+            <div id="afin-${context}-${user.id}" style="display: none; margin-top: 10px; background: rgba(212, 175, 55, 0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.2);">
+                <p class="small mb-2 text-white-50 fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Títulos compartidos:</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <c:forEach var="titulo" items="${fn:split(user.listaTitulosEnComun, ',')}">
+                        <span class="badge bg-dark text-gold border border-warning-subtle" style="font-size: 0.7rem; font-weight: 500;">
+                            <i class="bi bi-book me-1"></i> ${titulo.trim()}
+                        </span>
+                    </c:forEach>
+                </div>
             </div>
         </c:if>
     </div>

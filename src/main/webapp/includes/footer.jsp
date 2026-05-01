@@ -62,4 +62,21 @@
             window.location.href = url;
         });
     }
+
+    // Función para mostrar/ocultar libros en común
+    function toggleAfinidad(id) {
+        const el = document.getElementById(id);
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            el.style.animation = 'fadeIn 0.3s ease';
+        } else {
+            el.style.display = 'none';
+        }
+    }
 </script>
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
