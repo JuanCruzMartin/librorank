@@ -39,7 +39,7 @@ public class AmigosServlet extends HttpServlet {
         List<Usuario> amigos = amigoDAO.obtenerAmigos(usuarioLogueado.getId());
         req.setAttribute("amigos", amigos);
 
-        req.getRequestDispatcher("/perfil?tab=amigos").forward(req, resp);
+        req.getRequestDispatcher("/amigos.jsp").forward(req, resp);
     }
 
     @Override
