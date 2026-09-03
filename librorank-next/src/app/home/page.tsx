@@ -1,33 +1,34 @@
-import { redirect } from 'next/navigation'
+﻿import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAuthUser } from '@/lib/auth'
 import { buscarPorId } from '@/lib/dao/usuarioDAO'
 import { obtenerFeedAmigos } from '@/lib/dao/actividadDAO'
 import { obtenerCitaAleatoria } from '@/lib/dao/citaDAO'
+import { obtenerLeyendoAhora, contarLeidosEsteAnio } from '@/lib/dao/libroDAO'
+import { obtenerMisionesConProgreso } from '@/lib/dao/misionDAO'
+import { crearTabla, obtenerLogsHoy } from '@/lib/dao/registroLecturaDAO'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import FeedClient from './FeedClient'
+import LigaNotif from '@/components/LigaNotif'
+import MisionesWidget from './MisionesWidget'
+import LeyendoAhoraWidget from './LeyendoAhoraWidget'
 
-function formatFechaActividad(tipo: string, tituloLibro?: string | null, detalle?: string | null): string {
-  switch (tipo) {
-    case 'NUEVO_LIBRO': return `empezó a leer "${tituloLibro}"`
-    case 'LIBRO_LEIDO': return `terminó de leer "${tituloLibro}"`
-    case 'NUEVO_RETO': return `lanzó un nuevo Reto: "${detalle}"`
-    case 'CAMBIO_ESTADO': return `actualizó "${tituloLibro}" → ${detalle}`
-    case 'NUEVA_CALIFICACION': return `puntuó "${tituloLibro}" con ${detalle} ⭐`
-    case 'DIARIO_LOG': return `actualizó su progreso: ${detalle}`
-    default: return detalle || tipo
-  }
-}
 
 export default async function HomePage() {
   const authUser = await getAuthUser()
   if (!authUser) redirect('/login')
 
-  const [usuario, feed, citaDelDia] = await Promise.all([
+  await crearTabla()
+
+  const [usuario, feed, citaDelDia, librosLeyendo, leidosEsteAnio, misiones, logsHoy] = await Promise.all([
     buscarPorId(authUser.id),
     obtenerFeedAmigos(authUser.id),
     obtenerCitaAleatoria(authUser.id),
+    obtenerLeyendoAhora(authUser.id),
+    contarLeidosEsteAnio(authUser.id),
+    obtenerMisionesConProgreso(authUser.id),
+    obtenerLogsHoy(authUser.id),
   ])
 
   if (!usuario) redirect('/login')
@@ -35,18 +36,19 @@ export default async function HomePage() {
   return (
     <>
       <Header user={usuario} />
+      <LigaNotif puntos={usuario.puntos} />
       <main>
         <div className="container py-5">
           <div className="row g-4">
             {/* Columna Izquierda: Perfil Rápido */}
             <div className="col-lg-4">
               <div className="card p-4 text-center">
-                <div className="user-avatar mb-3" style={{ width: 100, height: 100, margin: '0 auto', overflow: 'hidden', borderRadius: '50%' }}>
+                <div className="user-avatar" style={{ width: 100, height: 100, margin: '0 auto' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={usuario.avatar_url || '/img/personajes/personaje_1.png'}
+                    src={usuario.avatar_url || '/default-avatar.svg'}
                     alt="Avatar"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => { (e.target as HTMLImageElement).src = '/img/personajes/personaje_1.png' }}
                   />
                 </div>
                 <h2 className="h4 mb-1">Hola, {usuario.nombre}!</h2>
@@ -54,7 +56,17 @@ export default async function HomePage() {
 
                 <div className="d-flex justify-content-center gap-3 mt-2">
                   <div className="text-center">
-                    <div className="fw-bold text-gold">🔥 {usuario.racha_actual}</div>
+                    <div className="fw-bold text-gold">
+                      🔥 {usuario.racha_actual}
+                      {usuario.escudos_racha > 0 && (
+                        <span
+                          title={`${usuario.escudos_racha} escudo${usuario.escudos_racha > 1 ? 's' : ''} de racha`}
+                          style={{ marginLeft: 4, fontSize: '0.85em' }}
+                        >
+                          {'🛡️'.repeat(usuario.escudos_racha)}
+                        </span>
+                      )}
+                    </div>
                     <div className="small text-muted">Racha</div>
                   </div>
                   <div className="text-center">
@@ -62,6 +74,37 @@ export default async function HomePage() {
                     <div className="small text-muted">Puntos</div>
                   </div>
                 </div>
+
+                {/* Objetivo anual */}
+                {usuario.objetivo_anual && usuario.objetivo_anual > 0 && (
+                  <div className="mt-3 text-start">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <span className="small text-muted">Meta {new Date().getFullYear()}</span>
+                      <span className="small fw-bold" style={{ color: '#d4af37' }}>
+                        {leidosEsteAnio} / {usuario.objetivo_anual} 📚
+                      </span>
+                    </div>
+                    <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 99, overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%',
+                        width: `${Math.min((leidosEsteAnio / usuario.objetivo_anual) * 100, 100)}%`,
+                        background: 'linear-gradient(90deg, #b8860b, #d4af37, #f1c40f)',
+                        borderRadius: 99,
+                        transition: 'width 0.5s ease',
+                      }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Leyendo ahora */}
+                {librosLeyendo.length > 0 && (
+                  <>
+                    <hr className="my-3 opacity-10" />
+                    <div className="text-start">
+                      <LeyendoAhoraWidget libros={librosLeyendo} logsHoy={logsHoy} />
+                    </div>
+                  </>
+                )}
 
                 {citaDelDia && (
                   <>
@@ -81,6 +124,8 @@ export default async function HomePage() {
                 <Link href="/biblioteca" className="btn btn-gold w-100 mb-2">Mi Biblioteca</Link>
                 <Link href="/stats" className="btn btn-outline-secondary w-100 btn-sm">Ver mis stats</Link>
               </div>
+
+              <MisionesWidget misionesIniciales={misiones} />
             </div>
 
             {/* Columna Derecha: Feed Social */}
@@ -89,7 +134,6 @@ export default async function HomePage() {
               <FeedClient
                 feedInicial={feed}
                 usuarioId={authUser.id}
-                formatFecha={formatFechaActividad}
               />
             </div>
           </div>
@@ -99,3 +143,4 @@ export default async function HomePage() {
     </>
   )
 }
+

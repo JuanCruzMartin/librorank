@@ -1,90 +1,91 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { getAuthUser } from '@/lib/auth'
-import { buscarPorId, obtenerRankingLectores, getTituloLector } from '@/lib/dao/usuarioDAO'
+import { buscarPorId, obtenerRankingLectores, obtenerRankingSemanal, obtenerRankingAutores, getNivelLector } from '@/lib/dao/usuarioDAO'
 import { obtenerIdsAmigos } from '@/lib/dao/amigoDAO'
+import { getLiga } from '@/lib/ligas'
+import { ensureResetSemanal, getLigaCompUsuario, getRankingLigaComp } from '@/lib/dao/ligaCompDAO'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { AgregarAmigoBtnClient } from './AgregarAmigo'
+import RankingClient from './RankingClient'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Ranking de Lectores',
+  description: 'Mirá quiénes son los lectores más activos de LibroRank. Competí, subí de liga y alcanzá la cima del ranking literario.',
+}
 
 export default async function RankingPage() {
   const authUser = await getAuthUser()
   if (!authUser) redirect('/login')
 
-  const [usuario, ranking, idsAmigos] = await Promise.all([
+  // Dispara el reset semanal lazy (no-op si ya se corrió esta semana)
+  await ensureResetSemanal().catch(() => {})
+
+  const [usuario, rankingRaw, idsAmigos, rankingSemanalRaw, rankingAutores] = await Promise.all([
     buscarPorId(authUser.id),
-    obtenerRankingLectores(50),
+    obtenerRankingLectores(200),
     obtenerIdsAmigos(authUser.id),
+    obtenerRankingSemanal(100),
+    obtenerRankingAutores(30),
   ])
 
   if (!usuario) redirect('/login')
+
+  const ligaActual    = getLiga(usuario.puntos ?? 0)
+  const ligaCompKey   = await getLigaCompUsuario(authUser.id)
+  const ligaCompRaw   = await getRankingLigaComp(ligaCompKey)
+
+  const ranking = rankingRaw.map(u => ({
+    id: u.id,
+    nombre: u.nombre,
+    username: u.username,
+    puntos: u.puntos ?? 0,
+    total_leidos: u.total_leidos ?? 0,
+    total_paginas: u.total_paginas ?? 0,
+    avatar_url: u.avatar_url ?? null,
+    es_amigo: idsAmigos.includes(u.id),
+    es_yo: u.id === authUser.id,
+  }))
+
+  const rankingSemanal = rankingSemanalRaw.map(u => ({
+    id: u.id,
+    nombre: u.nombre,
+    username: u.username,
+    avatar_url: u.avatar_url ?? null,
+    puntos: u.puntos ?? 0,
+    libros_semana: u.libros_semana ?? 0,
+    es_yo: u.id === authUser.id,
+    es_amigo: idsAmigos.includes(u.id),
+  }))
+
+  const ligaSemanal = ligaCompRaw.map(u => ({
+    id: u.id,
+    nombre: u.nombre,
+    username: u.username,
+    avatar_url: u.avatar_url ?? null,
+    puntos: u.puntos ?? 0,
+    libros_semana: Number(u.libros_semana ?? 0),
+    es_yo: u.id === authUser.id,
+    es_amigo: idsAmigos.includes(u.id),
+    nivel: getNivelLector(u.puntos ?? 0),
+  }))
 
   return (
     <>
       <Header user={usuario} />
       <main>
-        <div className="container py-5">
-          <div className="d-flex justify-content-between align-items-end mb-5">
-            <div>
-              <h1 className="font-title display-5 mb-1">🏆 Ranking Global</h1>
-              <p className="text-muted">Los lectores más épicos de LibroRank.</p>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="table-responsive">
-              <table className="table-landing w-100">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Lector</th>
-                    <th>Puntos</th>
-                    <th>Leídos</th>
-                    <th>Nivel</th>
-                    <th>Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ranking.map((u, i) => {
-                    const esYo = u.id === authUser.id
-                    const esAmigo = idsAmigos.includes(u.id)
-                    return (
-                      <tr key={u.id} className={esYo ? 'highlight' : ''}>
-                        <td>
-                          <span className={`rank-number ${i === 0 ? 'top-1' : ''}`}>#{i + 1}</span>
-                        </td>
-                        <td>
-                          <div className="d-flex align-items-center gap-2">
-                            <Link href={`/perfil?id=${u.id}`} className="fw-bold text-white text-decoration-none">
-                              @{u.username}
-                            </Link>
-                            {esYo && <span className="badge bg-warning text-dark small">Vos</span>}
-                            {esAmigo && <span className="badge-cozy small">amigo</span>}
-                          </div>
-                          <div className="text-muted small">{u.nombre}</div>
-                        </td>
-                        <td className="fw-bold" style={{ color: '#D4AF37' }}>⭐ {u.puntos}</td>
-                        <td className="text-white">{u.total_leidos ?? 0} <small className="text-muted">libros</small></td>
-                        <td><span className="badge-cozy">{getTituloLector(u.total_leidos ?? 0)}</span></td>
-                        <td>
-                          {!esYo && !esAmigo && (
-                            <AgregarAmigoBtn amigoId={u.id} />
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <RankingClient
+          ranking={ranking}
+          rankingSemanal={rankingSemanal}
+          ligaSemanal={ligaSemanal}
+          rankingAutores={rankingAutores}
+          ligaActualKey={ligaActual.key}
+          ligaCompKey={ligaCompKey}
+          usuarioId={authUser.id}
+          puntosUsuario={usuario.puntos ?? 0}
+        />
       </main>
       <Footer />
     </>
   )
-}
-
-function AgregarAmigoBtn({ amigoId }: { amigoId: number }) {
-  return <AgregarAmigoBtnClient amigoId={amigoId} />
 }

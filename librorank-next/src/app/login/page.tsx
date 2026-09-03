@@ -13,61 +13,83 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     const fd = new FormData(e.currentTarget)
-    const data = { identificador: fd.get('identificador'), password: fd.get('password') }
-
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ identificador: fd.get('identificador'), password: fd.get('password') }),
     })
-
     const json = await res.json()
     setLoading(false)
-
-    if (!res.ok) {
-      setError(json.error || 'Error al iniciar sesión')
-    } else {
-      router.push(json.redirect || '/home')
-      router.refresh()
-    }
+    if (!res.ok) setError(json.error || 'Error al iniciar sesión')
+    else { router.push(json.redirect || '/home'); router.refresh() }
   }
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-header">
+      <aside className="auth-visual" />
+      <main className="auth-content">
+        <header className="auth-header">
           <Link href="/" className="logo text-decoration-none">Libro<span>Rank</span></Link>
-          <h1 className="auth-title">Bienvenido de vuelta</h1>
-          <p className="auth-subtitle">Ingresá a tu cuenta para continuar tu aventura lectora.</p>
+        </header>
+
+        <div className="auth-form-container">
+          <h1>Inicia sesión</h1>
+          <p className="text-muted">Qué bueno verte de nuevo. Tu biblioteca te espera.</p>
+
+          {error && (
+            <div style={{
+              color: '#ff4d4d',
+              background: 'rgba(255,77,77,0.1)',
+              border: '1px solid rgba(255,77,77,0.3)',
+              borderRadius: 8,
+              padding: '0.75rem 1rem',
+              marginBottom: '1.5rem',
+            }}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="field">
+              <label htmlFor="identificador">Email o usuario</label>
+              <input
+                type="text"
+                id="identificador"
+                name="identificador"
+                className="auth-input"
+                placeholder="ejemplo@correo.com"
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="password">Contraseña</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                className="auth-input"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <div style={{ textAlign: 'right', marginBottom: '0.5rem' }}>
+              <Link href="/forgot-password" style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#d4af37')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+            <button className="btn-auth" type="submit" disabled={loading}>
+              {loading ? 'Ingresando...' : 'Entrar a mi biblioteca'}
+            </button>
+            <p className="text-muted text-center mt-4">
+              ¿Todavía no tenés cuenta?{' '}
+              <Link href="/signup" className="text-gold fw-bold">Creá tu cuenta gratis</Link>
+            </p>
+          </form>
         </div>
-
-        {error && (
-          <div className="alert alert-danger" role="alert">{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="mb-3">
-            <label className="form-label text-muted">Email o Usuario</label>
-            <input name="identificador" type="text" className="form-control bg-input border-0 text-white"
-              placeholder="Tu email o username" required />
-          </div>
-          <div className="mb-4">
-            <label className="form-label text-muted">Contraseña</label>
-            <input name="password" type="password" className="form-control bg-input border-0 text-white"
-              placeholder="Tu contraseña" required />
-          </div>
-          <button type="submit" className="btn-auth w-100" disabled={loading}>
-            {loading ? 'Ingresando...' : 'Ingresar'}
-          </button>
-        </form>
-
-        <p className="text-center text-muted mt-4 small">
-          ¿No tenés cuenta?{' '}
-          <Link href="/signup" className="text-gold text-decoration-none fw-bold">Registrate gratis</Link>
-        </p>
-      </div>
+      </main>
     </div>
   )
 }

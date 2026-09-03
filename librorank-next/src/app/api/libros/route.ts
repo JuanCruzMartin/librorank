@@ -3,6 +3,9 @@ import { getAuthUserFromRequest } from '@/lib/auth'
 import * as libroDAO from '@/lib/dao/libroDAO'
 import * as actividadDAO from '@/lib/dao/actividadDAO'
 import * as logroDAO from '@/lib/dao/logroDAO'
+import { actualizarRacha } from '@/lib/dao/usuarioDAO'
+import { notificarLigaSemanalSuperado } from '@/lib/dao/notificacionDAO'
+import { agregarTirada } from '@/lib/dao/cartaDAO'
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUserFromRequest(req)
@@ -32,7 +35,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Ya tienes este libro registrado' }, { status: 409 })
       }
 
-      const ok = await libroDAO.agregar({
+      const nuevoId = await libroDAO.agregar({
         usuario_id: user.id, libro_global_id: null,
         titulo, autor,
         anio: anio ? Number(anio) : null,
@@ -41,17 +44,49 @@ export async function POST(req: NextRequest) {
         portada_url: portada_url || null,
         genero: genero || null,
         mood: mood || null,
-        estrellas: 0, resena: null,
+        estrellas: 0, resena: null, fecha_leido: null,
       })
 
-      if (ok && estado === 'LEIDO') {
-        await libroDAO.otorgarPuntos(user.id, 20, 'Libro marcado como LEÍDO')
-        await actividadDAO.registrar(user.id, 'LIBRO_LEIDO', null, `Ha terminado de leer "${titulo}"`)
-        const logros = await logroDAO.obtenerLogrosKeys(user.id)
-        if (!logros.has('PRIMER_LIBRO')) await logroDAO.desbloquearLogro(user.id, 'PRIMER_LIBRO')
+      let puntosGanados = 0
+      let toastMsg = ''
+
+      if (nuevoId) {
+        try {
+          await libroDAO.otorgarPuntos(user.id, 50, 'Libro agregado a la biblioteca')
+          puntosGanados += 50
+          if (estado === 'LEIDO') {
+            await libroDAO.otorgarPuntos(user.id, 30, 'Libro marcado como LEÍDO al agregar')
+            puntosGanados += 30
+            await actividadDAO.registrar(user.id, 'LIBRO_LEIDO', nuevoId, titulo)
+            agregarTirada(user.id).catch(() => {})
+            notificarLigaSemanalSuperado(user.id).catch(() => {})
+            // Actualizar racha
+            const rachaResult = await actualizarRacha(user.id)
+            if (rachaResult) {
+              puntosGanados += rachaResult.bonusPts
+              if (rachaResult.milestoneAlcanzado) {
+                toastMsg = `🔥 ¡${rachaResult.milestoneAlcanzado} días de racha! +${rachaResult.bonusPts} bonus · 📚 Libro leído`
+              } else if (rachaResult.escudoGanado) {
+                toastMsg = `📚 Libro leído · 🛡️ Nuevo escudo de racha +${puntosGanados} pts`
+              } else if (rachaResult.escudoUsado) {
+                toastMsg = `📚 Libro leído · 🛡️ Escudo activado (racha salvada!) +${puntosGanados} pts`
+              } else {
+                toastMsg = `📚 Libro agregado como leído · +${puntosGanados} pts · 🎴 +1 tirada`
+              }
+            } else {
+              toastMsg = `📚 Libro agregado como leído · +${puntosGanados} pts · 🎴 +1 tirada`
+            }
+          } else {
+            await actividadDAO.registrar(user.id, 'NUEVO_LIBRO', nuevoId, titulo)
+            toastMsg = `📚 Libro agregado a tu biblioteca · +${puntosGanados} puntos`
+          }
+          await logroDAO.verificarLogros(user.id)
+        } catch (e) {
+          console.error('Error otorgando puntos/logros (no crítico):', e)
+        }
       }
 
-      return NextResponse.json({ ok })
+      return NextResponse.json({ ok: !!nuevoId, id: nuevoId, puntosGanados, toastMsg })
     }
 
     if (accion === 'editar') {
@@ -60,17 +95,65 @@ export async function POST(req: NextRequest) {
 
       const ok = await libroDAO.actualizar({
         id: Number(id), usuario_id: user.id,
-        estado, estrellas: Number(estrellas) || 0,
-        resena, genero, mood,
+        estado: estado ?? 'PENDIENTE',
+        estrellas: Number(estrellas) || 0,
+        resena: resena || null,
+        genero: genero || null,
+        mood: mood || null,
       })
 
-      if (ok && estado === 'LEIDO' && libroAnterior?.estado !== 'LEIDO') {
-        await libroDAO.otorgarPuntos(user.id, 20, 'Libro marcado como LEÍDO')
-        if (resena) await libroDAO.otorgarPuntos(user.id, 10, 'Reseña escrita por libro LEÍDO')
-        await actividadDAO.registrar(user.id, 'LIBRO_LEIDO', Number(id), `Ha terminado de leer "${libroAnterior?.titulo}"`)
+      let puntosGanados = 0
+      const toastParts: string[] = []
+
+      if (ok) {
+        // Puntos y logros son secundarios — no deben bloquear el guardado
+        try {
+          const estadoAnterior = libroAnterior?.estado?.toUpperCase()
+          const estadoNuevo = (estado ?? '').toUpperCase()
+
+          if (estadoNuevo === 'LEIDO' && estadoAnterior !== 'LEIDO') {
+            await libroDAO.otorgarPuntos(user.id, 30, 'Libro marcado como LEÍDO')
+            await actividadDAO.registrar(user.id, 'LIBRO_LEIDO', Number(id), `Ha terminado de leer "${libroAnterior?.titulo}"`)
+            puntosGanados += 30
+            toastParts.push('📖 ¡Libro terminado! 🎴 +1 tirada de cartas')
+            agregarTirada(user.id).catch(() => {})
+            notificarLigaSemanalSuperado(user.id).catch(() => {})
+            // Actualizar racha con escudos y milestones
+            const rachaResult = await actualizarRacha(user.id)
+            if (rachaResult) {
+              puntosGanados += rachaResult.bonusPts
+              if (rachaResult.milestoneAlcanzado) {
+                toastParts.push(`🔥 ¡${rachaResult.milestoneAlcanzado} días de racha! +${rachaResult.bonusPts}`)
+              } else if (rachaResult.escudoGanado) {
+                toastParts.push(`🛡️ ¡Escudo de racha ganado! (${rachaResult.escudosRestantes}/2)`)
+              } else if (rachaResult.escudoUsado) {
+                toastParts.push(`🛡️ Escudo activado — racha salvada! (${rachaResult.escudosRestantes} restantes)`)
+              }
+            }
+          }
+          if (resena && resena.trim().length > 0 && !libroAnterior?.resena) {
+            await libroDAO.otorgarPuntos(user.id, 20, 'Reseña escrita')
+            // Guardamos el texto de la reseña en detalle para mostrarlo en el feed
+            await actividadDAO.registrar(user.id, 'RESENA', Number(id), resena.trim())
+            puntosGanados += 20
+            toastParts.push('✍️ Reseña escrita')
+          }
+          if (Number(estrellas) > 0 && (libroAnterior?.estrellas ?? 0) === 0) {
+            await libroDAO.otorgarPuntos(user.id, 10, 'Calificación con estrellas')
+            puntosGanados += 10
+            toastParts.push('⭐ Calificación')
+          }
+          await logroDAO.verificarLogros(user.id)
+        } catch (e) {
+          console.error('Error otorgando puntos/logros (no crítico):', e)
+        }
       }
 
-      return NextResponse.json({ ok })
+      const toastMsg = puntosGanados > 0
+        ? `${toastParts.join(' · ')} · +${puntosGanados} puntos`
+        : ''
+
+      return NextResponse.json({ ok, puntosGanados, toastMsg })
     }
 
     if (accion === 'eliminar') {

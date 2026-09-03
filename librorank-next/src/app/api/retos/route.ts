@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUserFromRequest } from '@/lib/auth'
 import * as retoDAO from '@/lib/dao/retoDAO'
+import { otorgarPuntos } from '@/lib/dao/libroDAO'
+import { verificarLogros } from '@/lib/dao/logroDAO'
+import { crearNotificacion } from '@/lib/dao/notificacionDAO'
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUserFromRequest(req)
@@ -22,12 +25,27 @@ export async function POST(req: NextRequest) {
       const { nombre, libroId, fechaFin } = body
       if (!nombre || !fechaFin) return NextResponse.json({ error: 'Nombre y fecha requeridos' }, { status: 400 })
       const ok = await retoDAO.crearReto(user.id, nombre, libroId ? Number(libroId) : null, fechaFin)
+      if (ok) { await otorgarPuntos(user.id, 20, 'Reto de lectura creado'); await verificarLogros(user.id) }
       return NextResponse.json({ ok })
     }
 
     if (accion === 'unirse') {
       const { retoId } = body
       const ok = await retoDAO.unirseAReto(Number(retoId), user.id)
+      if (ok) {
+        await otorgarPuntos(user.id, 10, 'Unido a un reto de lectura')
+        // Notificar al creador del reto (fire-and-forget)
+        retoDAO.obtenerCreadorReto(Number(retoId)).then(creadorId => {
+          if (creadorId && creadorId !== user.id) {
+            crearNotificacion(
+              creadorId,
+              'RETO_UNIDO',
+              `@${user.username} se unió a tu reto`,
+              { actorUsername: user.username, actorAvatarUrl: user.avatarUrl }
+            ).catch(() => {})
+          }
+        }).catch(() => {})
+      }
       return NextResponse.json({ ok })
     }
 

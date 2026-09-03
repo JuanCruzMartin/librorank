@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUserFromRequest } from '@/lib/auth'
 import * as amigoDAO from '@/lib/dao/amigoDAO'
+import { otorgarPuntos } from '@/lib/dao/libroDAO'
+import { registrar as registrarActividad } from '@/lib/dao/actividadDAO'
+import { crearNotificacion } from '@/lib/dao/notificacionDAO'
+import { verificarLogros } from '@/lib/dao/logroDAO'
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUserFromRequest(req)
@@ -13,12 +17,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(resultados)
   }
 
-  const [amigos, sugerencias] = await Promise.all([
+  const [amigos, sugerencias, todosLectores] = await Promise.all([
     amigoDAO.obtenerAmigos(user.id),
     amigoDAO.obtenerSugerencias(user.id),
+    amigoDAO.obtenerTodosLectores(user.id),
   ])
 
-  return NextResponse.json({ amigos, sugerencias })
+  return NextResponse.json({ amigos, sugerencias, todosLectores })
 }
 
 export async function POST(req: NextRequest) {
@@ -33,6 +38,18 @@ export async function POST(req: NextRequest) {
 
     if (action === 'agregar') {
       const ok = await amigoDAO.agregarAmigo(user.id, Number(amigoId))
+      if (ok) {
+        await otorgarPuntos(user.id, 15, 'Nueva conexión de lectura')
+        await registrarActividad(user.id, 'AMIGO', Number(amigoId), 'Se conectó con un nuevo lector')
+        await verificarLogros(user.id)
+        // Notificar al usuario seguido (fire-and-forget)
+        crearNotificacion(
+          Number(amigoId),
+          'NUEVO_SEGUIDOR',
+          `@${user.username} empezó a seguirte`,
+          { actorUsername: user.username, actorAvatarUrl: user.avatarUrl }
+        ).catch(() => {})
+      }
       return NextResponse.json({ ok })
     }
 

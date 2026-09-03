@@ -3,6 +3,9 @@ import { getAuthUser } from '@/lib/auth'
 import * as usuarioDAO from '@/lib/dao/usuarioDAO'
 import * as libroDAO from '@/lib/dao/libroDAO'
 import * as logroDAO from '@/lib/dao/logroDAO'
+import * as cartaDAO from '@/lib/dao/cartaDAO'
+import * as amigoDAO from '@/lib/dao/amigoDAO'
+import { calcularPersonaje } from '@/lib/personaje'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import PerfilClient from './PerfilClient'
@@ -14,7 +17,7 @@ export default async function PerfilPage({ searchParams }: { searchParams: Promi
   const params = await searchParams
   const targetId = params.id ? Number(params.id) : authUser.id
 
-  const [usuario, usuarioTarget, stats, ultimasLecturas, logros, leidosEsteAnio, totalLeidos] = await Promise.all([
+  const [usuario, usuarioTarget, stats, ultimasLecturas, logros, leidosEsteAnio, totalLeidos, topGeneros, resenasPublicas, paginasLeidas, librosDestacados, promedioEstrellas, totalResenas, generosDistintos, coleccionCartas, leyendoAhora, totalAmigos] = await Promise.all([
     usuarioDAO.buscarPorId(authUser.id),
     usuarioDAO.buscarPorId(targetId),
     libroDAO.obtenerStatsPorUsuario(targetId),
@@ -22,11 +25,27 @@ export default async function PerfilPage({ searchParams }: { searchParams: Promi
     logroDAO.obtenerLogrosUsuario(targetId),
     libroDAO.contarLeidosEsteAnio(targetId),
     libroDAO.contarLeidosTotal(targetId),
+    libroDAO.obtenerTopGeneros(targetId, 3),
+    libroDAO.obtenerResenasPublicas(targetId, 10),
+    libroDAO.sumarPaginasLeidas(targetId),
+    libroDAO.obtenerLibrosFavoritos(targetId, 8),
+    libroDAO.obtenerPromedioEstrellas(targetId),
+    libroDAO.contarResenasTotal(targetId),
+    libroDAO.contarGenerosDistintos(targetId),
+    cartaDAO.obtenerColeccion(targetId),
+    libroDAO.obtenerLeyendoAhora(targetId),
+    amigoDAO.contarAmigos(targetId),
   ])
 
   if (!usuario || !usuarioTarget) redirect('/login')
 
   const esMiPerfil = targetId === authUser.id
+  const personaje = calcularPersonaje(
+    totalLeidos,
+    totalResenas,
+    usuarioTarget.racha_actual ?? 0,
+    generosDistintos,
+  )
 
   return (
     <>
@@ -39,8 +58,17 @@ export default async function PerfilPage({ searchParams }: { searchParams: Promi
           logros={logros}
           leidosEsteAnio={leidosEsteAnio}
           totalLeidos={totalLeidos}
-          tituloLector={usuarioDAO.getTituloLector(totalLeidos)}
+          nivelInfo={usuarioDAO.getNivelLector(usuarioTarget.puntos ?? 0)}
           esMiPerfil={esMiPerfil}
+          topGeneros={topGeneros}
+          resenasPublicas={resenasPublicas}
+          paginasLeidas={paginasLeidas}
+          librosDestacados={librosDestacados}
+          promedioEstrellas={promedioEstrellas}
+          personaje={personaje}
+          coleccionCartas={coleccionCartas}
+          leyendoAhora={leyendoAhora}
+          totalAmigos={totalAmigos}
         />
       </main>
       <Footer />

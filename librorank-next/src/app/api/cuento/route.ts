@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUserFromRequest } from '@/lib/auth'
 import * as cuentoDAO from '@/lib/dao/cuentoDAO'
+import { otorgarPuntos } from '@/lib/dao/libroDAO'
+import { registrar as registrarActividad } from '@/lib/dao/actividadDAO'
+import { verificarLogros } from '@/lib/dao/logroDAO'
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUserFromRequest(req)
@@ -38,5 +41,10 @@ export async function POST(req: NextRequest) {
   }
 
   const ok = await cuentoDAO.guardarHoja(historiaId, user.id, contenido)
+  if (ok) {
+    await otorgarPuntos(user.id, 30, 'Hoja escrita en el cuento comunitario')
+    await registrarActividad(user.id, 'CUENTO', historiaId, 'Ha añadido una hoja al Gran Cuento Comunitario')
+    await verificarLogros(user.id)
+  }
   return NextResponse.json({ ok })
 }

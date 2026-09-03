@@ -33,8 +33,13 @@ export async function obtenerAmigos(usuarioId: number): Promise<(Usuario & { lib
 export async function buscarUsuarios(queryStr: string, usuarioActualId: number) {
   const like = `%${queryStr}%`
   return query(
-    `SELECT u.id, u.nombre, u.username, u.avatar_url, u.generos_favoritos, u.bio,
-            (SELECT COUNT(*) FROM libros_usuario lu WHERE lu.usuario_id=u.id AND lu.estado IN ('LEIDO','LEÍDO')) as total_leidos
+    `SELECT u.id, u.nombre, u.username, u.avatar_url, u.bio,
+            (SELECT COUNT(*) FROM libros_usuario lu WHERE lu.usuario_id=u.id AND UPPER(lu.estado) IN ('LEIDO','LEÍDO')) as total_leidos,
+            (SELECT GROUP_CONCAT(g ORDER BY cnt DESC SEPARATOR ', ')
+             FROM (SELECT genero AS g, COUNT(*) AS cnt FROM libros_usuario
+                   WHERE usuario_id=u.id AND UPPER(estado) IN ('LEIDO','LEÍDO')
+                     AND genero IS NOT NULL AND genero != ''
+                   GROUP BY genero ORDER BY cnt DESC LIMIT 3) top) AS generos_favoritos
      FROM usuarios u WHERE (u.username LIKE ? OR u.email LIKE ?) AND u.id<>? LIMIT 10`,
     [like, like, usuarioActualId]
   )
@@ -42,8 +47,13 @@ export async function buscarUsuarios(queryStr: string, usuarioActualId: number) 
 
 export async function obtenerSugerencias(usuarioId: number) {
   const todos = await query(
-    `SELECT DISTINCT u.id, u.nombre, u.username, u.avatar_url, u.generos_favoritos, u.bio,
-            (SELECT COUNT(*) FROM libros_usuario lu WHERE lu.usuario_id=u.id AND lu.estado IN ('LEIDO','LEÍDO')) as total_leidos
+    `SELECT DISTINCT u.id, u.nombre, u.username, u.avatar_url, u.bio,
+            (SELECT COUNT(*) FROM libros_usuario lu WHERE lu.usuario_id=u.id AND UPPER(lu.estado) IN ('LEIDO','LEÍDO')) as total_leidos,
+            (SELECT GROUP_CONCAT(g ORDER BY cnt DESC SEPARATOR ', ')
+             FROM (SELECT genero AS g, COUNT(*) AS cnt FROM libros_usuario
+                   WHERE usuario_id=u.id AND UPPER(estado) IN ('LEIDO','LEÍDO')
+                     AND genero IS NOT NULL AND genero != ''
+                   GROUP BY genero ORDER BY cnt DESC LIMIT 3) top) AS generos_favoritos
      FROM usuarios u
      WHERE u.id<>? AND u.id NOT IN (SELECT amigo_id FROM amigos WHERE usuario_id=?)
      LIMIT 20`,
@@ -58,6 +68,35 @@ export async function obtenerSugerencias(usuarioId: number) {
     }))
   )
   return conComun.filter(u => u.libros_en_comun > 0).slice(0, 5)
+}
+
+export async function obtenerTodosLectores(usuarioId: number) {
+  return query<{
+    id: number; nombre: string; username: string; avatar_url: string | null
+    bio: string | null; generos_favoritos: string | null; total_leidos: number
+    es_seguido: number
+  }>(
+    `SELECT u.id, u.nombre, u.username, u.avatar_url, u.bio,
+            COUNT(l.id) AS total_leidos,
+            EXISTS(SELECT 1 FROM amigos a WHERE a.usuario_id=? AND a.amigo_id=u.id) AS es_seguido,
+            (SELECT GROUP_CONCAT(g ORDER BY cnt DESC SEPARATOR ', ')
+             FROM (SELECT genero AS g, COUNT(*) AS cnt FROM libros_usuario
+                   WHERE usuario_id=u.id AND UPPER(estado) IN ('LEIDO','LEÍDO')
+                     AND genero IS NOT NULL AND genero != ''
+                   GROUP BY genero ORDER BY cnt DESC LIMIT 3) top) AS generos_favoritos
+     FROM usuarios u
+     LEFT JOIN libros_usuario l ON l.usuario_id=u.id AND UPPER(l.estado) IN ('LEIDO','LEÍDO')
+     WHERE u.id <> ?
+     GROUP BY u.id, u.nombre, u.username, u.avatar_url, u.bio
+     ORDER BY total_leidos DESC, u.nombre ASC
+     LIMIT 100`,
+    [usuarioId, usuarioId]
+  )
+}
+
+export async function contarAmigos(usuarioId: number): Promise<number> {
+  const row = await queryOne<{ total: number }>('SELECT COUNT(*) AS total FROM amigos WHERE usuario_id=?', [usuarioId])
+  return row?.total ?? 0
 }
 
 export async function esSonAmigos(id1: number, id2: number): Promise<boolean> {

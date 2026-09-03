@@ -10,9 +10,11 @@ export interface JWTPayload {
   avatarUrl: string | null
 }
 
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'librorank-dev-secret-change-in-production'
-)
+const jwtSecret = process.env.JWT_SECRET
+if (!jwtSecret) {
+  throw new Error('JWT_SECRET no está configurado. Agregalo en las variables de entorno.')
+}
+const secret = new TextEncoder().encode(jwtSecret)
 
 const COOKIE_NAME = 'librorank_token'
 const EXPIRES_IN = '7d'

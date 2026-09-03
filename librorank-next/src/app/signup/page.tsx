@@ -13,85 +13,106 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     const fd = new FormData(e.currentTarget)
-    const data = {
-      nombre: fd.get('nombre'),
-      usuario: fd.get('usuario'),
-      email: fd.get('email'),
-      password: fd.get('password'),
-      password2: fd.get('password2'),
-    }
-
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        nombre: fd.get('nombre'),
+        usuario: fd.get('usuario'),
+        email: fd.get('email'),
+        password: fd.get('password'),
+        password2: fd.get('password2'),
+      }),
     })
-
     const json = await res.json()
     setLoading(false)
-
-    if (!res.ok) {
-      setError(json.error || 'Error al registrarse')
-    } else {
-      router.push(json.redirect || '/home')
-      router.refresh()
-    }
+    if (!res.ok) setError(json.error || 'Error al registrarse')
+    else { router.push(json.redirect || '/home'); router.refresh() }
   }
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-header">
+      <aside className="auth-visual" />
+      <main className="auth-content" style={{ maxWidth: 420 }}>
+        <header className="auth-header">
           <Link href="/" className="logo text-decoration-none">Libro<span>Rank</span></Link>
-          <h1 className="auth-title">Crea tu cuenta</h1>
-          <p className="auth-subtitle">Únete a la comunidad de lectores más épica.</p>
+        </header>
+
+        <div className="auth-form-container">
+          <h1>Crea tu cuenta</h1>
+          <p className="text-muted">Unite a miles de lectores. Tu aventura empieza acá.</p>
+
+          {error && (
+            <div style={{
+              color: '#ff4d4d',
+              background: 'rgba(255,77,77,0.1)',
+              border: '1px solid rgba(255,77,77,0.3)',
+              borderRadius: 8,
+              padding: '0.75rem 1rem',
+              marginBottom: '1.5rem',
+            }}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="row">
+              <div className="col-md-6">
+                <div className="field">
+                  <label>Nombre completo</label>
+                  <input type="text" name="nombre" className="auth-input" placeholder="Juan Pérez" required />
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="field">
+                  <label>Usuario</label>
+                  <input type="text" name="usuario" className="auth-input" placeholder="@lector123" required />
+                </div>
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Email</label>
+              <input type="email" name="email" className="auth-input" placeholder="tu@email.com" required />
+            </div>
+
+            <div className="row">
+              <div className="col-md-6">
+                <div className="field">
+                  <label>Contraseña</label>
+                  <input type="password" name="password" className="auth-input" placeholder="••••••••" required />
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="field">
+                  <label>Repetir contraseña</label>
+                  <input type="password" name="password2" className="auth-input" placeholder="••••••••" required />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <input type="checkbox" id="terms" name="terms" required style={{ width: 18, height: 18, accentColor: 'var(--accent-gold)', flexShrink: 0 }} />
+              <label htmlFor="terms" style={{ fontSize: '0.9rem', color: '#ccc', cursor: 'pointer' }}>
+                Acepto los{' '}
+                <a href="#" style={{ color: 'var(--accent-gold)', textDecoration: 'none' }}>
+                  términos y condiciones
+                </a>
+              </label>
+            </div>
+
+            <button className="btn-auth" type="submit" disabled={loading}>
+              {loading ? 'Creando cuenta...' : 'Comenzar mi aventura'}
+            </button>
+
+            <p className="text-muted text-center mt-4">
+              ¿Ya sos parte?{' '}
+              <Link href="/login" className="text-gold fw-bold">Iniciá sesión acá</Link>
+            </p>
+          </form>
         </div>
-
-        {error && <div className="alert alert-danger">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="row g-3 mb-3">
-            <div className="col-sm-6">
-              <label className="form-label text-muted">Nombre completo</label>
-              <input name="nombre" type="text" className="form-control bg-input border-0 text-white" placeholder="Tu nombre" required />
-            </div>
-            <div className="col-sm-6">
-              <label className="form-label text-muted">Nombre de usuario</label>
-              <input name="usuario" type="text" className="form-control bg-input border-0 text-white" placeholder="@username" required />
-            </div>
-          </div>
-          <div className="mb-3">
-            <label className="form-label text-muted">Email</label>
-            <input name="email" type="email" className="form-control bg-input border-0 text-white" placeholder="tu@email.com" required />
-          </div>
-          <div className="row g-3 mb-4">
-            <div className="col-sm-6">
-              <label className="form-label text-muted">Contraseña</label>
-              <input name="password" type="password" className="form-control bg-input border-0 text-white" placeholder="Mínimo 6 caracteres" required minLength={6} />
-            </div>
-            <div className="col-sm-6">
-              <label className="form-label text-muted">Confirmar contraseña</label>
-              <input name="password2" type="password" className="form-control bg-input border-0 text-white" placeholder="Repetí la contraseña" required />
-            </div>
-          </div>
-          <div className="mb-4 form-check">
-            <input type="checkbox" className="form-check-input" id="terms" name="terms" required />
-            <label className="form-check-label text-muted small" htmlFor="terms">
-              Acepto los <a href="#" className="text-gold">Términos y Condiciones</a>
-            </label>
-          </div>
-          <button type="submit" className="btn-auth w-100" disabled={loading}>
-            {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
-          </button>
-        </form>
-
-        <p className="text-center text-muted mt-4 small">
-          ¿Ya tenés cuenta?{' '}
-          <Link href="/login" className="text-gold text-decoration-none fw-bold">Ingresá acá</Link>
-        </p>
-      </div>
+      </main>
     </div>
   )
 }

@@ -29,19 +29,19 @@ export async function haEscritoYa(historiaId: number, usuarioId: number): Promis
 export async function guardarHoja(historiaId: number, usuarioId: number, contenido: string): Promise<boolean> {
   const conn = await getConnection()
   try {
-    const [rows] = await conn.execute<{ max_hoja: number }[]>(
+    const [rows] = await conn.query(
       'SELECT MAX(numero_hoja) as max_hoja FROM fragmentos_historia WHERE historia_id=?',
       [historiaId]
     )
-    const siguiente = ((rows[0] as { max_hoja: number })?.max_hoja ?? 0) + 1
+    const siguiente = (((rows as { max_hoja: number }[])[0])?.max_hoja ?? 0) + 1
 
-    const [res] = await conn.execute(
+    const [res] = await conn.query(
       'INSERT INTO fragmentos_historia (historia_id, usuario_id, contenido, numero_hoja) VALUES (?, ?, ?, ?)',
       [historiaId, usuarioId, contenido, siguiente]
     )
     return (res as { affectedRows: number }).affectedRows > 0
   } finally {
-    await conn.end()
+    conn.release()  // devolver la conexión al pool, no cerrarla
   }
 }
 

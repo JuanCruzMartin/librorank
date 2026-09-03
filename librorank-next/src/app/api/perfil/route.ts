@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     logros,
     leidosEsteAnio,
     totalLeidos,
-    tituloLector: usuarioDAO.getTituloLector(totalLeidos),
+    nivelInfo: usuarioDAO.getNivelLector(usuario?.puntos ?? 0),
     esMiPerfil: targetId === user.id,
   })
 }
