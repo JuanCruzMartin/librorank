@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import ColeccionClient from './ColeccionClient'
 import IntercambiosClient from '../intercambios/IntercambiosClient'
+import TiendaClient from '../tienda/TiendaClient'
+import type { ItemTienda } from '@/lib/tienda'
 
 const SS_INTERCAMBIOS = 'lr_banner_intercambios_visto'
 
@@ -14,18 +16,21 @@ interface Props {
   cantidades: Record<string, number>
   tiradas: number
   usuarioId: number
+  puntos: number
+  itemsTienda: ItemTienda[]
   amigos: Amigo[]
-  tabInicial: 'coleccion' | 'intercambios'
+  tabInicial: 'coleccion' | 'intercambios' | 'tienda'
 }
 
 const TABS = [
   { id: 'coleccion',    label: '🎴 Mi Colección' },
   { id: 'intercambios', label: '🔄 Intercambios' },
+  { id: 'tienda',       label: '🛒 Tienda' },
 ] as const
 
 type Tab = typeof TABS[number]['id']
 
-export default function ColeccionConTabs({ coleccion, cantidades, tiradas, usuarioId, amigos, tabInicial }: Props) {
+export default function ColeccionConTabs({ coleccion, cantidades, tiradas, usuarioId, puntos, itemsTienda, amigos, tabInicial }: Props) {
   const [tab, setTab] = useState<Tab>(tabInicial)
   const [bannerVisible, setBannerVisible] = useState(false)
   const router = useRouter()
@@ -43,7 +48,7 @@ export default function ColeccionConTabs({ coleccion, cantidades, tiradas, usuar
       sessionStorage.setItem(SS_INTERCAMBIOS, '1')
       setBannerVisible(false)
     }
-    const url = t === 'intercambios' ? `${pathname}?tab=intercambios` : pathname
+    const url = t !== 'coleccion' ? `${pathname}?tab=${t}` : pathname
     router.replace(url, { scroll: false })
   }
 
@@ -56,36 +61,42 @@ export default function ColeccionConTabs({ coleccion, cantidades, tiradas, usuar
     <div>
       {/* Tab bar */}
       <div style={{
-        display: 'flex', gap: 4, padding: '0.75rem 1rem 0',
+        display: 'flex', justifyContent: 'center', padding: '1rem 1rem 0',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
-        background: 'rgba(0,0,0,0.2)',
+        background: 'rgba(0,0,0,0.25)',
         position: 'sticky', top: 0, zIndex: 100,
         backdropFilter: 'blur(10px)',
       }}>
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            onClick={() => cambiarTab(t.id)}
-            style={{
-              padding: '0.5rem 1.25rem',
-              borderRadius: '8px 8px 0 0',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: tab === t.id ? 700 : 500,
-              fontSize: '0.85rem',
-              background: tab === t.id
-                ? 'rgba(139,92,246,0.2)'
-                : 'transparent',
-              color: tab === t.id ? '#c4b5fd' : 'rgba(255,255,255,0.4)',
-              borderBottom: tab === t.id
-                ? '2px solid #7c3aed'
-                : '2px solid transparent',
-              transition: 'all 0.15s',
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+        <div style={{ display: 'flex', gap: 6 }}>
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => cambiarTab(t.id)}
+              style={{
+                padding: '0.6rem 1.5rem',
+                borderRadius: '10px 10px 0 0',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: tab === t.id ? 800 : 500,
+                fontSize: '0.9rem',
+                background: tab === t.id
+                  ? 'rgba(139,92,246,0.25)'
+                  : 'rgba(255,255,255,0.04)',
+                color: tab === t.id ? '#e9d5ff' : 'rgba(255,255,255,0.35)',
+                borderBottom: tab === t.id
+                  ? '2px solid #7c3aed'
+                  : '2px solid transparent',
+                boxShadow: tab === t.id
+                  ? '0 0 18px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.08)'
+                  : 'none',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Banner de descubrimiento — solo en pestaña colección */}
@@ -139,6 +150,11 @@ export default function ColeccionConTabs({ coleccion, cantidades, tiradas, usuar
           miColeccion={coleccion}
           amigos={amigos}
         />
+      )}
+      {tab === 'tienda' && (
+        <div style={{ padding: '1.5rem 1rem' }}>
+          <TiendaClient items={itemsTienda} puntosIniciales={puntos} />
+        </div>
       )}
     </div>
   )
